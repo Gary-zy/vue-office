@@ -125,7 +125,7 @@
         <div class="preview-wrapper">
           <VueOfficePdf
             :src="documentSrc"
-            style="height: 70vh; width: 100%;"
+            style="height: 80vh; width: 100%; min-width: 800px;"
             @rendered="onDocumentRendered"
             @error="onDocumentError"
           />
@@ -271,7 +271,7 @@ const renderLoadIcon = () => {
 <style scoped>
 .pdf-preview {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 90vw;
   margin: 0 auto;
   min-height: calc(100vh - 4rem);
 }
@@ -299,7 +299,7 @@ const renderLoadIcon = () => {
 
 .preview-wrapper {
   border-radius: 8px;
-  overflow: hidden;
+  overflow: auto;
   background: #fff;
 }
 

@@ -124,6 +124,8 @@
         
         <div class="preview-wrapper">
           <VueOfficePptx
+            v-if="shouldShowDocument"
+            :key="documentSrc"
             :src="documentSrc"
             style="height: 70vh; width: 100%;"
             @rendered="onDocumentRendered"
@@ -136,7 +138,28 @@
 </template>
 
 <script setup>
-import { ref, h } from 'vue'
+import { ref, h, computed, nextTick } from 'vue'
+import { 
+  NCard, 
+  NSpace, 
+  NH1, 
+  NP, 
+  NGrid, 
+  NGridItem, 
+  NUpload, 
+  NUploadDragger, 
+  NText, 
+  NIcon, 
+  NInput, 
+  NButton, 
+  NAlert, 
+  NSpin, 
+  NEmpty, 
+  NTag, 
+  NTooltip,
+  useMessage, 
+  useThemeVars 
+} from 'naive-ui'
 import { 
   DocumentTextOutline, 
   CloudUploadOutline, 
@@ -145,7 +168,6 @@ import {
   WarningOutline,
   CloseOutline
 } from '@vicons/ionicons5'
-import { NIcon } from 'naive-ui'
 import VueOfficePptx from '@vue-office/pptx'
 
 /**
@@ -159,6 +181,26 @@ const documentSrc = ref('')
 const documentUrl = ref('')
 const loading = ref(false)
 const error = ref('')
+
+/**
+ * @description 安全检查是否应该显示文档
+ * 处理documentSrc可能是字符串或ArrayBuffer的情况
+ */
+const shouldShowDocument = computed(() => {
+  if (!documentSrc.value) return false
+  
+  // 如果是字符串类型，检查trim后是否有内容
+  if (typeof documentSrc.value === 'string') {
+    return documentSrc.value.trim().length > 0
+  }
+  
+  // 如果是ArrayBuffer类型，直接返回true（存在即可显示）
+  if (documentSrc.value instanceof ArrayBuffer) {
+    return true
+  }
+  
+  return false
+})
 
 /**
  * @description 触发文件选择器
@@ -192,8 +234,9 @@ const handleFileUpload = (options) => {
   // 使用 FileReader 读取文件的 ArrayBuffer
   const fileReader = new FileReader()
   fileReader.readAsArrayBuffer(file)
-  fileReader.onload = () => {
+  fileReader.onload = async () => {
     documentSrc.value = fileReader.result
+    await nextTick()
     loading.value = false
   }
   fileReader.onerror = () => {
@@ -205,7 +248,7 @@ const handleFileUpload = (options) => {
 /**
  * @description 从 URL 加载文档
  */
-const loadFromUrl = () => {
+const loadFromUrl = async () => {
   if (!documentUrl.value.trim()) {
     error.value = '请输入有效的文档链接'
     return
@@ -214,6 +257,8 @@ const loadFromUrl = () => {
   loading.value = true
   error.value = ''
   documentSrc.value = documentUrl.value.trim()
+  await nextTick()
+  loading.value = false
 }
 
 /**
@@ -230,7 +275,18 @@ const onDocumentRendered = () => {
  */
 const onDocumentError = (err) => {
   loading.value = false
-  error.value = `演示文稿加载失败: ${err.message || '未知错误'}`
+  // 更详细的错误处理
+  if (err && err.message) {
+    if (err.message.includes('parentNode')) {
+      error.value = '文档渲染失败，请尝试重新上传文件'
+    } else if (err.message.includes('network') || err.message.includes('fetch')) {
+      error.value = '网络错误，请检查文件链接或网络连接'
+    } else {
+      error.value = `演示文稿加载失败: ${err.message}`
+    }
+  } else {
+    error.value = '演示文稿加载失败，请检查文件格式或重试'
+  }
   console.error('PPTX 演示文稿加载错误:', err)
 }
 
@@ -244,10 +300,13 @@ const clearError = () => {
 /**
  * @description 清除预览
  */
-const clearPreview = () => {
+const clearPreview = async () => {
+  loading.value = true
   documentSrc.value = ''
   documentUrl.value = ''
   error.value = ''
+  await nextTick()
+  loading.value = false
 }
 
 /**

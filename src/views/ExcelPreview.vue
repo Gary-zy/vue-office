@@ -131,7 +131,7 @@
           <VueOfficeExcel
             :src="documentSrc"
             :options="excelOptions"
-            style="height: 70vh; width: 100%;"
+            style="height: 70vh; width: 100%; min-width: 600px;"
             @rendered="onDocumentRendered"
             @error="onDocumentError"
           />
@@ -356,7 +356,7 @@ const renderLoadIcon = () => {
 
 .preview-wrapper {
   border-radius: 8px;
-  overflow: hidden;
+  overflow: auto;
   background: #fff;
 }
 

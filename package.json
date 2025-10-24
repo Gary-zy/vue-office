@@ -2,7 +2,18 @@
   "name": "vue3-document-preview",
   "version": "1.0.0",
   "description": "一个现代化的多格式文档在线预览系统，支持 Word、Excel、PDF、PowerPoint 等多种文档格式的高质量在线预览",
-  "keywords": ["vue3", "document", "preview", "office", "docx", "excel", "pdf", "pptx", "naive-ui", "vite"],
+  "keywords": [
+    "vue3",
+    "document",
+    "preview",
+    "office",
+    "docx",
+    "excel",
+    "pdf",
+    "pptx",
+    "naive-ui",
+    "vite"
+  ],
   "author": "Your Name <your.email@example.com>",
   "license": "MIT",
   "repository": {
