@@ -385,39 +385,178 @@
 
     <!-- 项目依赖项 -->
     <n-card title="项目依赖项" size="large">
+      <template #header-extra>
+        <n-space>
+          <n-tag type="success" size="small">
+            总计: {{ getDependencyStats().totalAll }} 个
+          </n-tag>
+          <n-tag type="info" size="small">
+            生产: {{ getDependencyStats().totalDeps }} 个
+          </n-tag>
+          <n-tag type="warning" size="small">
+            开发: {{ getDependencyStats().totalDevDeps }} 个
+          </n-tag>
+        </n-space>
+      </template>
+      
       <n-h2 style="background: linear-gradient(135deg, #d03050 0%, #f0a020 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
         完整依赖列表
       </n-h2>
       
-      <n-divider title-placement="left">核心依赖 (dependencies)</n-divider>
-      <n-list>
-        <n-list-item v-for="(version, name) in dependencies" :key="name">
-          <n-thing>
-            <template #avatar>
-              <n-avatar style="background-color: #18a058;">📦</n-avatar>
-            </template>
-            <template #header>{{ name }}</template>
-            <template #description>
-              版本: {{ version }} - {{ getPackageDescription(name) }}
-            </template>
-          </n-thing>
-        </n-list-item>
-      </n-list>
+      <!-- 生产依赖 -->
+      <n-divider title-placement="left">
+        <n-space align="center">
+          <n-icon size="20" color="#18a058">
+            <CheckmarkCircleOutline />
+          </n-icon>
+          <span>生产依赖 (Dependencies)</span>
+        </n-space>
+      </n-divider>
       
-      <n-divider title-placement="left">开发依赖 (devDependencies)</n-divider>
-      <n-list>
-        <n-list-item v-for="(version, name) in devDependencies" :key="name">
-          <n-thing>
-            <template #avatar>
-              <n-avatar style="background-color: #2080f0;">🔧</n-avatar>
-            </template>
-            <template #header>{{ name }}</template>
-            <template #description>
-              版本: {{ version }} - {{ getDevPackageDescription(name) }}
-            </template>
-          </n-thing>
-        </n-list-item>
-      </n-list>
+      <n-space vertical size="large">
+        <n-card 
+          v-for="(category, key) in dependencyCategories" 
+          :key="key" 
+          :title="category.title" 
+          size="medium"
+          style="margin-bottom: 16px;"
+        >
+          <template #header-extra>
+            <n-space align="center">
+              <span style="font-size: 18px;">{{ category.icon }}</span>
+              <n-tag :color="{ color: category.color, textColor: '#fff' }" size="small">
+                {{ Object.keys(category.packages).length }} 个
+              </n-tag>
+            </n-space>
+          </template>
+          
+          <n-list>
+            <n-list-item v-for="(pkg, name) in category.packages" :key="name">
+              <n-thing>
+                <template #avatar>
+                  <n-avatar :style="{ backgroundColor: category.color }">
+                    {{ category.icon }}
+                  </n-avatar>
+                </template>
+                <template #header>
+                  <n-space align="center">
+                    <n-text strong>{{ name }}</n-text>
+                    <n-tag type="success" size="tiny">{{ pkg.version }}</n-tag>
+                    <n-button 
+                      v-if="pkg.homepage" 
+                      text 
+                      size="tiny" 
+                      type="primary"
+                      @click="() => window.open(pkg.homepage, '_blank')"
+                    >
+                      <template #icon>
+                        <n-icon>
+                          <BookOutline />
+                        </n-icon>
+                      </template>
+                      文档
+                    </n-button>
+                  </n-space>
+                </template>
+                <template #description>
+                  {{ pkg.description }}
+                </template>
+              </n-thing>
+            </n-list-item>
+          </n-list>
+        </n-card>
+      </n-space>
+      
+      <!-- 开发依赖 -->
+      <n-divider title-placement="left" style="margin-top: 32px;">
+        <n-space align="center">
+          <n-icon size="20" color="#2080f0">
+            <CheckmarkCircleOutline />
+          </n-icon>
+          <span>开发依赖 (DevDependencies)</span>
+        </n-space>
+      </n-divider>
+      
+      <n-space vertical size="large">
+        <n-card 
+          v-for="(category, key) in devDependencyCategories" 
+          :key="key" 
+          :title="category.title" 
+          size="medium"
+          style="margin-bottom: 16px;"
+        >
+          <template #header-extra>
+            <n-space align="center">
+              <span style="font-size: 18px;">{{ category.icon }}</span>
+              <n-tag :color="{ color: category.color, textColor: '#fff' }" size="small">
+                {{ Object.keys(category.packages).length }} 个
+              </n-tag>
+            </n-space>
+          </template>
+          
+          <n-list>
+            <n-list-item v-for="(pkg, name) in category.packages" :key="name">
+              <n-thing>
+                <template #avatar>
+                  <n-avatar :style="{ backgroundColor: category.color }">
+                    {{ category.icon }}
+                  </n-avatar>
+                </template>
+                <template #header>
+                  <n-space align="center">
+                    <n-text strong>{{ name }}</n-text>
+                    <n-tag type="info" size="tiny">{{ pkg.version }}</n-tag>
+                    <n-button 
+                      v-if="pkg.homepage" 
+                      text 
+                      size="tiny" 
+                      type="primary"
+                      @click="() => window.open(pkg.homepage, '_blank')"
+                    >
+                      <template #icon>
+                        <n-icon>
+                          <BookOutline />
+                        </n-icon>
+                      </template>
+                      文档
+                    </n-button>
+                  </n-space>
+                </template>
+                <template #description>
+                  {{ pkg.description }}
+                </template>
+              </n-thing>
+            </n-list-item>
+          </n-list>
+        </n-card>
+      </n-space>
+      
+      <!-- 依赖安装命令 -->
+      <n-divider title-placement="left" style="margin-top: 32px;">
+        <n-space align="center">
+          <n-icon size="20" color="#722ed1">
+            <CheckmarkCircleOutline />
+          </n-icon>
+          <span>安装命令</span>
+        </n-space>
+      </n-divider>
+      
+      <n-space vertical size="medium">
+        <div>
+          <n-h4>安装所有依赖</n-h4>
+          <n-code language="bash" code="npm install" />
+        </div>
+        
+        <div>
+          <n-h4>安装特定依赖</n-h4>
+          <n-code language="bash" code="npm install @vue-office/docx @vue-office/excel @vue-office/pdf" />
+        </div>
+        
+        <div>
+          <n-h4>开发环境启动</n-h4>
+          <n-code language="bash" code="npm run dev" />
+        </div>
+      </n-space>
     </n-card>
 
     <!-- 功能特性 -->
@@ -542,29 +681,243 @@ const renderHomeIcon = () => {
 }
 
 /**
- * @description 项目核心依赖
+ * @description 项目依赖分类数据
  */
-const dependencies = ref({
-  '@vicons/ionicons5': '^0.12.0',
-  '@vue-office/docx': '^1.6.2',
-  '@vue-office/excel': '^1.7.11',
-  '@vue-office/pdf': '^2.0.2',
-  '@vue-office/pptx': '^1.0.1',
-  'naive-ui': '^2.43.1',
-  'vue': '^3.5.22',
-  'vue-router': '^4.6.3'
+const dependencyCategories = ref({
+  core: {
+    title: '核心框架',
+    icon: '🚀',
+    color: '#18a058',
+    packages: {
+      'vue': {
+        version: '^3.5.22',
+        description: '渐进式 JavaScript 框架，用于构建用户界面',
+        homepage: 'https://vuejs.org/',
+        category: 'framework'
+      },
+      'vue-router': {
+        version: '^4.6.3',
+        description: 'Vue.js 官方路由管理器，提供单页应用路由功能',
+        homepage: 'https://router.vuejs.org/',
+        category: 'framework'
+      },
+      'vue-demi': {
+        version: '^0.14.6',
+        description: 'Vue 2 和 Vue 3 的兼容层，支持跨版本开发',
+        homepage: 'https://github.com/vueuse/vue-demi',
+        category: 'framework'
+      }
+    }
+  },
+  ui: {
+    title: 'UI 组件库',
+    icon: '🎨',
+    color: '#2080f0',
+    packages: {
+      'naive-ui': {
+        version: '^2.43.1',
+        description: '现代化的 Vue 3 UI 组件库，提供丰富的组件和主题',
+        homepage: 'https://www.naiveui.com/',
+        category: 'ui'
+      },
+      'reka-ui': {
+        version: '^2.6.0',
+        description: '无样式、可访问的 Vue 组件库，提供高度可定制的组件',
+        homepage: 'https://reka-ui.com/',
+        category: 'ui'
+      },
+      'vfonts': {
+        version: '^0.0.3',
+        description: 'Naive UI 配套字体库，提供优雅的字体支持',
+        homepage: 'https://github.com/07akioni/vfonts',
+        category: 'ui'
+      }
+    }
+  },
+  office: {
+    title: '文档预览',
+    icon: '📄',
+    color: '#f0a020',
+    packages: {
+      '@vue-office/docx': {
+        version: '^1.6.3',
+        description: 'Vue 组件，用于预览 Word 文档 (.docx)，支持样式和格式',
+        homepage: 'https://501351981.github.io/vue-office/',
+        category: 'office'
+      },
+      '@vue-office/excel': {
+        version: '^1.7.14',
+        description: 'Vue 组件，用于预览 Excel 表格 (.xlsx)，支持多工作表',
+        homepage: 'https://501351981.github.io/vue-office/',
+        category: 'office'
+      },
+      '@vue-office/pdf': {
+        version: '^2.0.10',
+        description: 'Vue 组件，用于预览 PDF 文档，支持缩放和导航',
+        homepage: 'https://501351981.github.io/vue-office/',
+        category: 'office'
+      },
+      '@vue-office/pptx': {
+        version: '^1.0.1',
+        description: 'Vue 组件，用于预览 PowerPoint 演示文稿 (.pptx)',
+        homepage: 'https://501351981.github.io/vue-office/',
+        category: 'office'
+      }
+    }
+  },
+  icons: {
+    title: '图标库',
+    icon: '🎯',
+    color: '#d03050',
+    packages: {
+      '@vicons/ionicons5': {
+        version: '^0.13.0',
+        description: 'Ionicons 5 图标库，提供丰富的矢量图标',
+        homepage: 'https://ionicons.com/',
+        category: 'icons'
+      },
+      '@iconify/vue': {
+        version: '^5.0.0',
+        description: 'Iconify Vue 组件，支持超过 200,000 个图标',
+        homepage: 'https://iconify.design/',
+        category: 'icons'
+      },
+      '@iconify-json/radix-icons': {
+        version: '^1.2.5',
+        description: 'Radix Icons 图标集，提供简洁现代的图标',
+        homepage: 'https://icons.radix-ui.com/',
+        category: 'icons'
+      },
+      'lucide-vue-next': {
+        version: '^0.546.0',
+        description: 'Lucide 图标库的 Vue 3 版本，提供美观的线性图标',
+        homepage: 'https://lucide.dev/',
+        category: 'icons'
+      }
+    }
+  },
+  utils: {
+    title: '工具库',
+    icon: '🔧',
+    color: '#722ed1',
+    packages: {
+      '@vueuse/core': {
+        version: '^14.0.0',
+        description: 'Vue 组合式 API 工具集，提供丰富的可复用逻辑',
+        homepage: 'https://vueuse.org/',
+        category: 'utils'
+      },
+      'class-variance-authority': {
+        version: '^0.7.1',
+        description: '用于创建类型安全的 CSS 类变体的工具库',
+        homepage: 'https://cva.style/',
+        category: 'utils'
+      },
+      'clsx': {
+        version: '^2.1.1',
+        description: '轻量级的条件类名构建工具',
+        homepage: 'https://github.com/lukeed/clsx',
+        category: 'utils'
+      },
+      'tailwind-merge': {
+        version: '^3.3.1',
+        description: 'Tailwind CSS 类名合并工具，避免样式冲突',
+        homepage: 'https://github.com/dcastil/tailwind-merge',
+        category: 'utils'
+      },
+      'tailwindcss-animate': {
+        version: '^1.0.7',
+        description: 'Tailwind CSS 动画插件，提供丰富的动画效果',
+        homepage: 'https://github.com/midudev/tailwindcss-animate',
+        category: 'utils'
+      }
+    }
+  }
 })
 
 /**
- * @description 项目开发依赖
+ * @description 开发依赖分类数据
  */
-const devDependencies = ref({
-  '@vitejs/plugin-vue': '^5.2.1',
-  'autoprefixer': '^10.4.20',
-  'postcss': '^8.5.11',
-  'tailwindcss': '^4.1.16',
-  'vite': '^7.1.11'
+const devDependencyCategories = ref({
+  build: {
+    title: '构建工具',
+    icon: '⚡',
+    color: '#52c41a',
+    packages: {
+      'vite': {
+        version: '^7.1.11',
+        description: '下一代前端构建工具，提供极速的开发体验',
+        homepage: 'https://vitejs.dev/',
+        category: 'build'
+      },
+      '@vitejs/plugin-vue': {
+        version: '^6.0.1',
+        description: 'Vite 的 Vue 插件，提供 Vue SFC 支持',
+        homepage: 'https://github.com/vitejs/vite-plugin-vue',
+        category: 'build'
+      },
+      'vite-plugin-vue-devtools': {
+        version: '^8.0.3',
+        description: 'Vue DevTools 的 Vite 插件，增强开发体验',
+        homepage: 'https://devtools.vuejs.org/',
+        category: 'build'
+      }
+    }
+  },
+  styles: {
+    title: '样式工具',
+    icon: '🎨',
+    color: '#1890ff',
+    packages: {
+      'tailwindcss': {
+        version: '^4.1.16',
+        description: '实用优先的 CSS 框架，提供原子化样式',
+        homepage: 'https://tailwindcss.com/',
+        category: 'styles'
+      },
+      '@tailwindcss/postcss': {
+        version: '^4.1.16',
+        description: 'Tailwind CSS 的 PostCSS 插件',
+        homepage: 'https://tailwindcss.com/',
+        category: 'styles'
+      },
+      'postcss': {
+        version: '^8.5.6',
+        description: 'CSS 转换工具，支持插件生态系统',
+        homepage: 'https://postcss.org/',
+        category: 'styles'
+      },
+      'autoprefixer': {
+        version: '^10.4.21',
+        description: 'CSS 后处理器，自动添加浏览器前缀',
+        homepage: 'https://autoprefixer.github.io/',
+        category: 'styles'
+      }
+    }
+  }
 })
+
+/**
+ * @description 获取依赖统计信息
+ */
+const getDependencyStats = () => {
+  let totalDeps = 0
+  let totalDevDeps = 0
+  
+  Object.values(dependencyCategories.value).forEach(category => {
+    totalDeps += Object.keys(category.packages).length
+  })
+  
+  Object.values(devDependencyCategories.value).forEach(category => {
+    totalDevDeps += Object.keys(category.packages).length
+  })
+  
+  return {
+    totalDeps,
+    totalDevDeps,
+    totalAll: totalDeps + totalDevDeps
+  }
+}
 
 /**
  * @description 获取包的描述信息
