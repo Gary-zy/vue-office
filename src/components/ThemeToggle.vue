@@ -1,18 +1,36 @@
+<template>
+  <n-dropdown 
+    :options="themeOptions" 
+    @select="setTheme"
+    trigger="click"
+    placement="bottom-end"
+  >
+    <n-button 
+      circle 
+      quaternary
+      :aria-label="'当前主题: ' + getCurrentThemeLabel()"
+    >
+      <template #icon>
+        <n-icon :size="18">
+          <component :is="getThemeIcon()" />
+        </n-icon>
+      </template>
+    </n-button>
+  </n-dropdown>
+</template>
+
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, h } from 'vue'
 import { useColorMode } from '@vueuse/core'
-import { Icon } from '@iconify/vue'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { 
+  SunnyOutline as SunIcon,
+  MoonOutline as MoonIcon,
+  DesktopOutline as DesktopIcon
+} from '@vicons/ionicons5'
 
 /**
  * @description 主题切换组件
- * 提供明亮、暗黑和系统主题的切换功能
+ * 使用 Naive UI 的下拉菜单和按钮组件提供明亮、暗黑和系统主题的切换功能
  */
 
 // 使用 VueUse 的 useColorMode 管理主题状态
@@ -25,17 +43,32 @@ const mode = useColorMode({
 })
 
 /**
- * @description 获取当前主题对应的图标
- * @returns {string} 图标名称
+ * @description 获取当前主题对应的图标组件
+ * @returns {Component} Vue 组件
  */
 const getThemeIcon = () => {
   switch (mode.value) {
     case 'light':
-      return 'radix-icons:sun'
+      return SunIcon
     case 'dark':
-      return 'radix-icons:moon'
+      return MoonIcon
     default:
-      return 'radix-icons:desktop'
+      return DesktopIcon
+  }
+}
+
+/**
+ * @description 获取当前主题的标签文本
+ * @returns {string} 主题标签
+ */
+const getCurrentThemeLabel = () => {
+  switch (mode.value) {
+    case 'light':
+      return '明亮'
+    case 'dark':
+      return '暗黑'
+    default:
+      return '系统'
   }
 }
 
@@ -47,35 +80,26 @@ const setTheme = (theme) => {
   mode.value = theme
 }
 
-// 主题选项配置
-const themeOptions = [
-  { value: 'light', label: '明亮', icon: 'radix-icons:sun' },
-  { value: 'dark', label: '暗黑', icon: 'radix-icons:moon' },
-  { value: 'system', label: '系统', icon: 'radix-icons:desktop' }
-]
+// 主题选项配置 - 适配 Naive UI 下拉菜单格式
+const themeOptions = computed(() => [
+  {
+    key: 'light',
+    label: '明亮',
+    icon: () => h(SunIcon)
+  },
+  {
+    key: 'dark', 
+    label: '暗黑',
+    icon: () => h(MoonIcon)
+  },
+  {
+    key: 'system',
+    label: '系统',
+    icon: () => h(DesktopIcon)
+  }
+])
 </script>
 
-<template>
-  <DropdownMenu>
-    <DropdownMenuTrigger as-child>
-      <Button variant="outline" size="icon" class="relative">
-        <Icon 
-          :icon="getThemeIcon()" 
-          class="h-4 w-4 transition-all"
-        />
-        <span class="sr-only">切换主题</span>
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="w-40">
-      <DropdownMenuItem
-        v-for="option in themeOptions"
-        :key="option.value"
-        @click="setTheme(option.value)"
-        class="cursor-pointer"
-      >
-        <Icon :icon="option.icon" class="mr-2 h-4 w-4" />
-        <span>{{ option.label }}</span>
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-</template>
+<style scoped>
+/* Naive UI 组件的自定义样式 */
+</style>
