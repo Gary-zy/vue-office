@@ -24,10 +24,10 @@ jobs:
         
     - name: Remove lock file and node_modules
       run: |
-        rm -rf package-lock.json node_modules
+        rm -rf package-lock.json node_modules yarn.lock
         
-    - name: Install dependencies
-      run: npm install
+    - name: Install dependencies with force flags
+      run: npm install --force --legacy-peer-deps
       
     - name: Build
       run: npm run build
