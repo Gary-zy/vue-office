@@ -54,7 +54,7 @@
                   <n-button type="primary" size="large" style="padding: 0 32px; height: 48px;">
                     立即体验
                   </n-button>
-                  <n-button size="large" style="padding: 0 32px; height: 48px;">
+                  <n-button size="large" style="padding: 0 32px; height: 48px;" @click="$router.push('/about')">
                     查看文档
                   </n-button>
                 </n-space>

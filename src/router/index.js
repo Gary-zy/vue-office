@@ -23,7 +23,7 @@ const routes = [
     name: 'About',
     component: About,
     meta: {
-      title: '关于我们'
+      title: '相关文档'
     }
   },
   {

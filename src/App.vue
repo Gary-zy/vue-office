@@ -20,7 +20,7 @@
             </ul>
           </li>
           <li class="nav-item">
-            <router-link to="/about" class="nav-link">关于</router-link>
+            <router-link to="/about" class="nav-link">相关文档</router-link>
           </li>
         </ul>
       </div>

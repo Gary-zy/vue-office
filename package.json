@@ -1,7 +1,19 @@
 {
-  "name": "vue-project",
-  "version": "0.0.0",
-  "private": true,
+  "name": "vue3-document-preview",
+  "version": "1.0.0",
+  "description": "一个现代化的多格式文档在线预览系统，支持 Word、Excel、PDF、PowerPoint 等多种文档格式的高质量在线预览",
+  "keywords": ["vue3", "document", "preview", "office", "docx", "excel", "pdf", "pptx", "naive-ui", "vite"],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/vue3-document-preview.git"
+  },
+  "homepage": "https://github.com/your-username/vue3-document-preview#readme",
+  "bugs": {
+    "url": "https://github.com/your-username/vue3-document-preview/issues"
+  },
+  "private": false,
   "type": "module",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
