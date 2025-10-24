@@ -12,7 +12,7 @@
 
 *支持 Word、Excel、PDF、PowerPoint 等多种文档格式的高质量在线预览*
 
-[在线演示](https://your-demo-link.com) • [快速开始](#-快速开始) • [功能特色](#-功能特色) • [技术文档](#-使用说明)
+[在线演示](https://gary-zy.github.io/vue-office/) • [快速开始](#-快速开始) • [功能特色](#-功能特色) • [技术文档](#-使用说明)
 
 </div>
 
