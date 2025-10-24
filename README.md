@@ -322,7 +322,7 @@ const pdfUrl = 'https://example.com/document.pdf'
 
 **如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！**
 
-Made with ❤️ by [Your Name](https://github.com/your-username)
+Made with ❤️ by [Gary-zy](https://github.com/Gary-zy)
 
 </div>
 # 触发部署
