@@ -270,8 +270,8 @@ const handleDocFile = (file) => {
  * @description 从 URL 加载文档
  */
 const loadFromUrl = async () => {
-  if (!urlInput.value.trim()) {
-    message.warning('请输入文档链接')
+  if (!documentUrl.value.trim()) {
+    error.value = '请输入文档链接'
     return
   }
 
@@ -316,6 +316,392 @@ const loadFromUrl = async () => {
 const onDocumentRendered = () => {
   loading.value = false
   console.log('DOCX 文档渲染完成')
+  
+  // 检查图片加载状态
+  setTimeout(() => {
+    checkImageLoadingIssues()
+  }, 1000)
+}
+
+/**
+ * @description 检查图片加载问题并自动修复
+ */
+const checkImageLoadingIssues = () => {
+  const docxContainer = document.querySelector('.preview-wrapper')
+  if (!docxContainer) return
+  
+  const images = docxContainer.querySelectorAll('img')
+  const totalImages = images.length
+  
+  console.log(`📊 DOCX 图片统计: 总共 ${totalImages} 张图片`)
+  console.log('🔍 开始检查每张图片的加载状态...')
+  
+  const imageStatus = {
+    loaded: [],
+    failed: [],
+    loading: []
+  }
+  
+  // 收集图片状态
+  const collectImageStatus = async () => {
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i]
+      const status = {
+        index: i + 1,
+        src: img.src,
+        alt: img.alt || '无描述',
+        width: img.width,
+        height: img.height,
+        complete: img.complete,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight
+      }
+      
+      if (img.complete) {
+        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+          imageStatus.loaded.push(status)
+        } else {
+          const failureAnalysis = await analyzeImageFailure(img, i + 1)
+          imageStatus.failed.push({
+            ...status,
+            failureReason: failureAnalysis
+          })
+        }
+      } else {
+        imageStatus.loading.push(status)
+      }
+    }
+  }
+  
+  // 自动修复失败的图片
+  const fixFailedImages = async () => {
+    if (imageStatus.failed.length === 0) return
+    
+    console.log(`🔧 开始自动修复 ${imageStatus.failed.length} 张失败的图片...`)
+    
+    let fixedCount = 0
+    let failedToFixCount = 0
+    
+    // 等待图片加载的辅助函数
+    const waitForImageLoad = (img, newSrc) => {
+      return new Promise((resolve) => {
+        const onLoad = () => {
+          img.removeEventListener('load', onLoad)
+          img.removeEventListener('error', onError)
+          resolve(true)
+        }
+        
+        const onError = () => {
+          img.removeEventListener('load', onLoad)
+          img.removeEventListener('error', onError)
+          resolve(false)
+        }
+        
+        img.addEventListener('load', onLoad)
+        img.addEventListener('error', onError)
+        
+        // 设置新的src
+        img.src = newSrc
+        
+        // 如果图片已经加载完成，立即触发
+        if (img.complete) {
+          if (img.naturalWidth > 0) {
+            onLoad()
+          } else {
+            onError()
+          }
+        }
+        
+        // 设置超时
+        setTimeout(() => {
+          img.removeEventListener('load', onLoad)
+          img.removeEventListener('error', onError)
+          resolve(false)
+        }, 5000)
+      })
+    }
+    
+    for (const failedImg of imageStatus.failed) {
+      try {
+        const imgElement = images[failedImg.index - 1]
+        const fixedSrc = await fixImageBlob(imgElement.src, failedImg.index)
+        
+        if (fixedSrc) {
+          console.log(`🔄 正在替换图片 ${failedImg.index} 的源地址...`)
+          
+          // 等待图片加载完成
+          const loadSuccess = await waitForImageLoad(imgElement, fixedSrc)
+          
+          if (loadSuccess) {
+            fixedCount++
+            console.log(`✅ 图片 ${failedImg.index} 修复并加载成功`)
+          } else {
+            failedToFixCount++
+            console.log(`❌ 图片 ${failedImg.index} 修复后仍无法加载`)
+          }
+        } else {
+          failedToFixCount++
+          console.log(`❌ 图片 ${failedImg.index} 修复失败`)
+        }
+      } catch (error) {
+        failedToFixCount++
+        console.log(`❌ 图片 ${failedImg.index} 修复出错:`, error.message)
+      }
+    }
+    
+    console.log(`🎉 修复完成! 成功: ${fixedCount} 张, 失败: ${failedToFixCount} 张`)
+    
+    if (fixedCount > 0) {
+      console.log(`✨ ${fixedCount} 张图片已成功修复并显示在预览中`)
+    }
+    
+    if (failedToFixCount > 0) {
+      console.log(`⚠️ ${failedToFixCount} 张图片修复失败，可能需要手动处理`)
+    }
+  }
+  
+  // 执行检查和修复
+  collectImageStatus().then(() => {
+    // 显示初始状态
+    console.log(`📈 图片加载状态统计:`)
+    console.log(`   ✅ 已成功加载: ${imageStatus.loaded.length} 张`)
+    console.log(`   ❌ 加载失败: ${imageStatus.failed.length} 张`)
+    console.log(`   ⏳ 正在加载: ${imageStatus.loading.length} 张`)
+    
+    // 自动修复失败的图片
+    fixFailedImages()
+    
+    if (imageStatus.failed.length === 0 && imageStatus.loading.length === 0) {
+      console.log('🎊 所有图片加载完成!')
+    }
+  })
+}
+
+/**
+ * @description 修复图片 blob 的 MIME 类型
+ * @param {string} blobUrl - 原始 blob URL
+ * @param {number} index - 图片索引
+ * @returns {Promise<string|null>} 修复后的 blob URL
+ */
+const fixImageBlob = async (blobUrl, index) => {
+  try {
+    if (!blobUrl.startsWith('blob:')) {
+      return null
+    }
+    
+    // 获取原始 blob 数据
+    const response = await fetch(blobUrl)
+    const arrayBuffer = await response.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+    
+    // 显示调试信息
+    const headerBytes = Array.from(uint8Array.slice(0, 16))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join(' ')
+    console.log(`🔍 图片 ${index} 数据头 (${uint8Array.length} 字节): ${headerBytes}`)
+    
+    // 检测图片格式
+    let mimeType = detectImageMimeType(uint8Array)
+    
+    if (!mimeType) {
+      console.log(`⚠️ 图片 ${index}: 无法检测到有效的图片格式，尝试回退策略`)
+      
+      // 回退策略：尝试常见的MIME类型
+      const fallbackTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp']
+      
+      for (const fallbackType of fallbackTypes) {
+        try {
+          const testBlob = new Blob([arrayBuffer], { type: fallbackType })
+          const testUrl = URL.createObjectURL(testBlob)
+          
+          // 创建临时图片元素测试是否能加载
+          const testImg = new Image()
+          const canLoad = await new Promise((resolve) => {
+            testImg.onload = () => resolve(true)
+            testImg.onerror = () => resolve(false)
+            testImg.src = testUrl
+            
+            // 设置超时
+            setTimeout(() => resolve(false), 1000)
+          })
+          
+          URL.revokeObjectURL(testUrl)
+          
+          if (canLoad) {
+            mimeType = fallbackType
+            console.log(`✅ 图片 ${index}: 回退策略成功，使用 ${fallbackType}`)
+            break
+          }
+        } catch (e) {
+          continue
+        }
+      }
+    }
+    
+    if (!mimeType) {
+      console.log(`❌ 图片 ${index}: 所有检测方法都失败了`)
+      return null
+    }
+    
+    // 创建带有正确 MIME 类型的新 blob
+    const blob = new Blob([arrayBuffer], { type: mimeType })
+    const newBlobUrl = URL.createObjectURL(blob)
+    
+    console.log(`🔧 图片 ${index}: 检测到格式 ${mimeType}，创建新的 blob URL`)
+    
+    return newBlobUrl
+  } catch (error) {
+    console.error(`❌ 修复图片 ${index} 时出错:`, error)
+    return null
+  }
+}
+
+/**
+ * @description 通过文件头检测图片 MIME 类型
+ * @param {Uint8Array} bytes - 图片字节数据
+ * @returns {string|null} MIME 类型
+ */
+const detectImageMimeType = (bytes) => {
+  if (bytes.length < 4) return null
+  
+  // PNG: 89 50 4E 47
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+    return 'image/png'
+  }
+  
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+    return 'image/jpeg'
+  }
+  
+  // GIF: 47 49 46 38 (GIF8)
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+    return 'image/gif'
+  }
+  
+  // WebP: 52 49 46 46 ... 57 45 42 50
+  if (bytes.length >= 12 && 
+      bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+      bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
+    return 'image/webp'
+  }
+  
+  // BMP: 42 4D
+  if (bytes[0] === 0x42 && bytes[1] === 0x4D) {
+    return 'image/bmp'
+  }
+  
+  // TIFF: 49 49 2A 00 或 4D 4D 00 2A
+  if ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2A && bytes[3] === 0x00) ||
+      (bytes[0] === 0x4D && bytes[1] === 0x4D && bytes[2] === 0x00 && bytes[3] === 0x2A)) {
+    return 'image/tiff'
+  }
+  
+  // ICO: 00 00 01 00
+  if (bytes[0] === 0x00 && bytes[1] === 0x00 && bytes[2] === 0x01 && bytes[3] === 0x00) {
+    return 'image/x-icon'
+  }
+  
+  // EMF (Enhanced Metafile): 01 00 00 00
+  if (bytes.length >= 8 && bytes[0] === 0x01 && bytes[1] === 0x00 && bytes[2] === 0x00 && bytes[3] === 0x00) {
+    // 进一步检查EMF签名
+    if (bytes.length >= 44) {
+      // EMF签名通常在偏移40处有特定标识
+      return 'image/emf'
+    }
+  }
+  
+  // WMF (Windows Metafile): D7 CD C6 9A 或 01 00 09 00
+  if ((bytes[0] === 0xD7 && bytes[1] === 0xCD && bytes[2] === 0xC6 && bytes[3] === 0x9A) ||
+      (bytes[0] === 0x01 && bytes[1] === 0x00 && bytes[2] === 0x09 && bytes[3] === 0x00)) {
+    return 'image/wmf'
+  }
+  
+  // SVG: 检查是否以 < 开头 (可能是SVG)
+  if (bytes[0] === 0x3C) {
+    const text = new TextDecoder('utf-8').decode(bytes.slice(0, Math.min(100, bytes.length)))
+    if (text.includes('<svg') || text.includes('<?xml')) {
+      return 'image/svg+xml'
+    }
+  }
+  
+  // AVIF: 检查 ftyp 盒子
+  if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11])
+    if (brand === 'avif' || brand === 'avis') {
+      return 'image/avif'
+    }
+  }
+  
+  // HEIC/HEIF: 检查 ftyp 盒子
+  if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    const brand = String.fromCharCode(bytes[8], bytes[9], bytes[10], bytes[11])
+    if (brand === 'heic' || brand === 'heix' || brand === 'heif' || brand === 'mif1') {
+      return 'image/heic'
+    }
+  }
+  
+  return null
+}
+
+/**
+ * @description 分析图片加载失败的具体原因
+ * @param {HTMLImageElement} img - 图片元素
+ * @param {number} index - 图片索引
+ * @returns {Promise<string>} 失败原因描述
+ */
+const analyzeImageFailure = async (img, index) => {
+  const src = img.src
+  
+  // 检查 src 格式
+  if (!src || src === '') {
+    return 'src 属性为空'
+  }
+  
+  if (src.startsWith('blob:')) {
+    try {
+      // 尝试通过 fetch 检查 blob URL 是否有效
+      const response = await fetch(src)
+      if (!response.ok) {
+        return `blob URL 无效 (状态: ${response.status})`
+      }
+      
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.startsWith('image/')) {
+        return `blob 内容类型错误: ${contentType || '未知'}`
+      }
+      
+      const blob = await response.blob()
+      if (blob.size === 0) {
+        return 'blob 内容为空'
+      }
+      
+      return `blob URL 有效但图片解析失败 (大小: ${blob.size} bytes, 类型: ${contentType})`
+    } catch (error) {
+      return `blob URL 访问失败: ${error.message}`
+    }
+  } else if (src.startsWith('data:')) {
+    // 检查 data URL
+    const parts = src.split(',')
+    if (parts.length !== 2) {
+      return 'data URL 格式错误'
+    }
+    
+    const header = parts[0]
+    const data = parts[1]
+    
+    if (!header.includes('image/')) {
+      return `data URL 不是图片类型: ${header}`
+    }
+    
+    if (!data || data.length === 0) {
+      return 'data URL 数据为空'
+    }
+    
+    return `data URL 有效但图片解析失败 (数据长度: ${data.length})`
+  } else {
+    return `不支持的图片 URL 格式: ${src.substring(0, 50)}...`
+  }
 }
 
 /**
@@ -324,8 +710,40 @@ const onDocumentRendered = () => {
  */
 const onDocumentError = (err) => {
   loading.value = false
-  error.value = `文档加载失败: ${err.message || '未知错误'}`
-  console.error('DOCX 文档加载错误:', err)
+  
+  // 详细的错误信息
+  let errorMessage = '文档加载失败'
+  let debugInfo = {
+    originalError: err,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    documentSrc: typeof documentSrc.value === 'string' ? documentSrc.value.substring(0, 100) : 'ArrayBuffer'
+  }
+  
+  if (err.message) {
+    errorMessage += `: ${err.message}`
+    
+    // 针对常见错误提供解决建议
+    if (err.message.includes('network') || err.message.includes('fetch')) {
+      errorMessage += '\n💡 建议: 检查网络连接或文件链接是否有效'
+    } else if (err.message.includes('parse') || err.message.includes('format')) {
+      errorMessage += '\n💡 建议: 文件可能损坏或格式不支持，请尝试其他 DOCX 文件'
+    } else if (err.message.includes('cors') || err.message.includes('origin')) {
+      errorMessage += '\n💡 建议: 跨域问题，请使用本地文件上传方式'
+    }
+  }
+  
+  error.value = errorMessage
+  
+  console.group('🔍 DOCX 文档加载错误详情')
+  console.error('错误对象:', err)
+  console.log('调试信息:', debugInfo)
+  console.log('🛠️  调试建议:')
+  console.log('1. 检查文件是否为有效的 .docx 格式')
+  console.log('2. 尝试用 Microsoft Word 打开原文件确认无损坏')
+  console.log('3. 如果是在线链接，检查是否存在跨域限制')
+  console.log('4. 查看浏览器网络面板是否有请求失败')
+  console.groupEnd()
 }
 
 /**
