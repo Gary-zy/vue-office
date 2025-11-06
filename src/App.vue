@@ -30,10 +30,10 @@
                 </n-button>
               </n-dropdown>
               
-              <!-- 文档预览下拉菜单 -->
-              <n-dropdown trigger="hover" :options="previewOptions" @select="handlePreviewSelect">
+              <!-- 工具下拉菜单 -->
+              <n-dropdown trigger="hover" :options="toolsOptions" @select="handleToolsSelect">
                 <n-button text>
-                  文档预览
+                  工具
                   <template #icon>
                     <n-icon :component="ChevronDown" />
                   </template>
@@ -100,7 +100,12 @@ import {
   DocumentTextOutline,
   GridOutline,
   FileTrayFullOutline,
-  CalendarOutline
+  CalendarOutline,
+  CreateOutline,
+  BulbOutline,
+  MapOutline,
+  VideocamOutline,
+  QrCodeOutline
 } from '@vicons/ionicons5'
 
 /**
@@ -141,43 +146,136 @@ const blogOptions = [
     label: '文章归档',
     key: 'blog-archive',
     icon: renderIcon(CalendarOutline)
+  }
+]
+
+// 工具下拉菜单选项
+const toolsOptions = [
+  {
+    label: '文档预览',
+    key: 'tools-preview-group',
+    type: 'group',
+    icon: renderIcon(DocumentTextOutline),
+    children: [
+      {
+        label: 'DOCX 预览',
+        key: 'docx-preview',
+        icon: renderIcon(DocumentTextOutline)
+      },
+      {
+        label: 'Excel 预览',
+        key: 'excel-preview',
+        icon: renderIcon(GridOutline)
+      },
+      {
+        label: 'PDF 预览',
+        key: 'pdf-preview',
+        icon: renderIcon(FileTrayFullOutline)
+      },
+      {
+        label: 'PPTX 预览',
+        key: 'pptx-preview',
+        icon: renderIcon(DocumentTextOutline)
+      }
+    ]
   },
   {
     type: 'divider'
   },
   {
-    label: '分类浏览',
-    key: 'blog-categories',
+    label: '编辑器',
+    key: 'tools-editor-group',
+    type: 'group',
+    icon: renderIcon(CreateOutline),
+    children: [
+      {
+        label: 'Markdown 编辑器',
+        key: 'rich-editor',
+        icon: renderIcon(CreateOutline)
+      },
+      {
+        label: 'WangEditor 富文本',
+        key: 'wang-editor',
+        icon: renderIcon(CreateOutline)
+      },
+      {
+        label: 'Vditor 编辑器',
+        key: 'vditor-editor',
+        icon: renderIcon(CodeSlashOutline)
+      }
+    ]
+  },
+  {
+    type: 'divider'
+  },
+  {
+    label: '可视化工具',
+    key: 'tools-visual-group',
+    type: 'group',
+    icon: renderIcon(CalendarOutline),
+    children: [
+      {
+        label: '甘特图',
+        key: 'gantt-chart',
+        icon: renderIcon(CalendarOutline)
+      },
+      {
+        label: '地图工具',
+        key: 'map-viewer',
+        icon: renderIcon(MapOutline)
+      },
+      {
+        label: '室内导览',
+        key: 'indoor-guide',
+        icon: renderIcon(MapOutline)
+      }
+    ]
+  },
+  {
+    type: 'divider'
+  },
+  {
+    label: '媒体工具',
+    key: 'tools-media-group',
+    type: 'group',
+    icon: renderIcon(VideocamOutline),
+    children: [
+      {
+        label: '视频播放器',
+        key: 'video-player',
+        icon: renderIcon(VideocamOutline)
+      }
+    ]
+  },
+  {
+    type: 'divider'
+  },
+  {
+    label: '开发工具',
+    key: 'tools-dev-group',
+    type: 'group',
+    icon: renderIcon(CodeSlashOutline),
+    children: [
+      {
+        label: 'JSON 格式化',
+        key: 'json-formatter',
+        icon: renderIcon(CodeSlashOutline)
+      },
+      {
+        label: '条形码/二维码',
+        key: 'barcode-generator',
+        icon: renderIcon(QrCodeOutline)
+      }
+    ]
+  },
+  {
+    type: 'divider'
+  },
+  {
+    label: 'AI 工具',
+    key: 'ai-tools',
+    icon: renderIcon(BulbOutline),
     disabled: true
-  },
-  {
-    label: '标签浏览',
-    key: 'blog-tags',
-    disabled: true
-  }
-]
-
-// 文档预览下拉菜单选项
-const previewOptions = [
-  {
-    label: 'DOCX 预览',
-    key: 'docx-preview',
-    icon: renderIcon(DocumentTextOutline)
-  },
-  {
-    label: 'Excel 预览',
-    key: 'excel-preview',
-    icon: renderIcon(GridOutline)
-  },
-  {
-    label: 'PDF 预览',
-    key: 'pdf-preview',
-    icon: renderIcon(FileTrayFullOutline)
-  },
-  {
-    label: 'PPTX 预览',
-    key: 'pptx-preview',
-    icon: renderIcon(DocumentTextOutline)
   }
 ]
 
@@ -192,12 +290,26 @@ function handleBlogSelect(key) {
   }
 }
 
-function handlePreviewSelect(key) {
+function handleToolsSelect(key) {
   const routes = {
-    'docx-preview': '/docx-preview',
-    'excel-preview': '/excel-preview',
-    'pdf-preview': '/pdf-preview',
-    'pptx-preview': '/pptx-preview'
+    // 文档预览
+    'docx-preview': '/tools/preview/docx',
+    'excel-preview': '/tools/preview/excel',
+    'pdf-preview': '/tools/preview/pdf',
+    'pptx-preview': '/tools/preview/pptx',
+    // 编辑器
+    'rich-editor': '/tools/editor/rich',
+    'wang-editor': '/tools/editor/wang',
+    'vditor-editor': '/tools/editor/vditor',
+    // 可视化工具
+    'gantt-chart': '/tools/gantt',
+    'map-viewer': '/tools/map',
+    'indoor-guide': '/tools/indoor-guide',
+    // 媒体工具
+    'video-player': '/tools/video',
+    // 开发工具
+    'json-formatter': '/tools/json',
+    'barcode-generator': '/tools/barcode'
   }
   
   if (routes[key]) {

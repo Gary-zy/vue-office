@@ -1,0 +1,377 @@
+{
+  "buildings": [
+    {
+      "id": "building-1",
+      "name": "自然博物馆",
+      "description": "展示自然历史和科学知识的综合性博物馆",
+      "floors": [
+        {
+          "id": "floor-2",
+          "name": "F2",
+          "level": 2,
+          "title": "二层展厅",
+          "svg": {
+            "width": 800,
+            "height": 600,
+            "viewBox": "0 0 800 600"
+          },
+          "rooms": [
+            {
+              "id": "room-1",
+              "name": "猛犸象展厅",
+              "type": "exhibition",
+              "x": 100,
+              "y": 150,
+              "width": 180,
+              "height": 120,
+              "description": "展示猛犸象化石和复原模型",
+              "exhibits": ["猛犸象骨架", "猛犸象复原模型", "冰河时代展品"]
+            },
+            {
+              "id": "room-2",
+              "name": "林瓣蹼鹬展区",
+              "type": "exhibition",
+              "x": 320,
+              "y": 150,
+              "width": 150,
+              "height": 120,
+              "description": "展示各种鸟类标本",
+              "exhibits": ["林瓣蹼鹬标本", "鸟类进化史"]
+            },
+            {
+              "id": "room-3",
+              "name": "格陵兰驯鹿",
+              "type": "exhibition",
+              "x": 500,
+              "y": 150,
+              "width": 160,
+              "height": 120,
+              "description": "极地动物展示区",
+              "exhibits": ["驯鹿标本", "极地生态"]
+            },
+            {
+              "id": "room-4",
+              "name": "南极狼展区",
+              "type": "exhibition",
+              "x": 100,
+              "y": 300,
+              "width": 170,
+              "height": 130,
+              "description": "展示已灭绝的南极狼",
+              "exhibits": ["南极狼标本", "灭绝动物展"]
+            },
+            {
+              "id": "room-5",
+              "name": "失落的世界",
+              "type": "exhibition",
+              "x": 300,
+              "y": 300,
+              "width": 200,
+              "height": 130,
+              "description": "展示史前生物",
+              "exhibits": ["恐龙化石", "史前植物", "古生物模型"]
+            },
+            {
+              "id": "room-6",
+              "name": "阿特拉斯棕熊",
+              "type": "exhibition",
+              "x": 530,
+              "y": 300,
+              "width": 150,
+              "height": 130,
+              "description": "大型哺乳动物展区",
+              "exhibits": ["棕熊标本", "哺乳动物进化"]
+            }
+          ],
+          "facilities": [
+            {
+              "id": "facility-1",
+              "name": "洗手间",
+              "type": "restroom",
+              "x": 50,
+              "y": 50,
+              "icon": "🚻"
+            },
+            {
+              "id": "facility-2",
+              "name": "无障碍卫生间",
+              "type": "accessible-restroom",
+              "x": 50,
+              "y": 100,
+              "icon": "♿"
+            },
+            {
+              "id": "facility-3",
+              "name": "手扶电梯",
+              "type": "escalator",
+              "x": 700,
+              "y": 200,
+              "icon": "⬆️"
+            },
+            {
+              "id": "facility-4",
+              "name": "电梯",
+              "type": "elevator",
+              "x": 700,
+              "y": 300,
+              "icon": "🛗"
+            },
+            {
+              "id": "facility-5",
+              "name": "出入口",
+              "type": "entrance",
+              "x": 700,
+              "y": 500,
+              "icon": "🚪"
+            }
+          ],
+          "corridors": [
+            {
+              "id": "corridor-1",
+              "points": [
+                { "x": 280, "y": 150 },
+                { "x": 280, "y": 430 }
+              ],
+              "width": 40
+            },
+            {
+              "id": "corridor-2",
+              "points": [
+                { "x": 100, "y": 210 },
+                { "x": 680, "y": 210 }
+              ],
+              "width": 40
+            },
+            {
+              "id": "corridor-3",
+              "points": [
+                { "x": 100, "y": 360 },
+                { "x": 680, "y": 360 }
+              ],
+              "width": 40
+            }
+          ]
+        },
+        {
+          "id": "floor-1",
+          "name": "F1",
+          "level": 1,
+          "title": "一层展厅",
+          "svg": {
+            "width": 800,
+            "height": 600,
+            "viewBox": "0 0 800 600"
+          },
+          "rooms": [
+            {
+              "id": "room-7",
+              "name": "斑驴展区",
+              "type": "exhibition",
+              "x": 120,
+              "y": 100,
+              "width": 160,
+              "height": 140,
+              "description": "展示已灭绝的斑驴",
+              "exhibits": ["斑驴标本", "非洲动物"]
+            },
+            {
+              "id": "room-8",
+              "name": "马羚展区",
+              "type": "exhibition",
+              "x": 320,
+              "y": 100,
+              "width": 150,
+              "height": 140,
+              "description": "非洲草原动物",
+              "exhibits": ["马羚标本", "草原生态"]
+            },
+            {
+              "id": "room-9",
+              "name": "日本海狮",
+              "type": "exhibition",
+              "x": 500,
+              "y": 100,
+              "width": 160,
+              "height": 140,
+              "description": "海洋哺乳动物展区",
+              "exhibits": ["海狮标本", "海洋生物"]
+            },
+            {
+              "id": "room-10",
+              "name": "游客中心",
+              "type": "info",
+              "x": 120,
+              "y": 280,
+              "width": 120,
+              "height": 100,
+              "description": "提供咨询服务"
+            },
+            {
+              "id": "room-11",
+              "name": "纪念品商店",
+              "type": "shop",
+              "x": 280,
+              "y": 280,
+              "width": 140,
+              "height": 100,
+              "description": "购买纪念品"
+            },
+            {
+              "id": "room-12",
+              "name": "咖啡厅",
+              "type": "restaurant",
+              "x": 460,
+              "y": 280,
+              "width": 140,
+              "height": 100,
+              "description": "休息和用餐"
+            }
+          ],
+          "facilities": [
+            {
+              "id": "facility-6",
+              "name": "洗手间",
+              "type": "restroom",
+              "x": 50,
+              "y": 50,
+              "icon": "🚻"
+            },
+            {
+              "id": "facility-7",
+              "name": "电梯",
+              "type": "elevator",
+              "x": 700,
+              "y": 200,
+              "icon": "🛗"
+            },
+            {
+              "id": "facility-8",
+              "name": "主入口",
+              "type": "entrance",
+              "x": 700,
+              "y": 500,
+              "icon": "🚪"
+            }
+          ],
+          "corridors": [
+            {
+              "id": "corridor-4",
+              "points": [
+                { "x": 280, "y": 100 },
+                { "x": 280, "y": 380 }
+              ],
+              "width": 40
+            },
+            {
+              "id": "corridor-5",
+              "points": [
+                { "x": 120, "y": 240 },
+                { "x": 600, "y": 240 }
+              ],
+              "width": 40
+            }
+          ]
+        },
+        {
+          "id": "floor-b1",
+          "name": "B1",
+          "level": -1,
+          "title": "地下一层",
+          "svg": {
+            "width": 800,
+            "height": 600,
+            "viewBox": "0 0 800 600"
+          },
+          "rooms": [
+            {
+              "id": "room-13",
+              "name": "地震波的传播",
+              "type": "exhibition",
+              "x": 100,
+              "y": 100,
+              "width": 200,
+              "height": 150,
+              "description": "地震科学展区",
+              "exhibits": ["地震模拟器", "地震波演示"]
+            },
+            {
+              "id": "room-14",
+              "name": "地球的低吟",
+              "type": "exhibition",
+              "x": 340,
+              "y": 100,
+              "width": 200,
+              "height": 150,
+              "description": "地球科学展区",
+              "exhibits": ["地球模型", "地质展品"]
+            },
+            {
+              "id": "room-15",
+              "name": "危化品安全",
+              "type": "exhibition",
+              "x": 100,
+              "y": 300,
+              "width": 180,
+              "height": 150,
+              "description": "安全科普展区",
+              "exhibits": ["安全知识", "应急演练"]
+            },
+            {
+              "id": "room-16",
+              "name": "重于泰山",
+              "type": "exhibition",
+              "x": 320,
+              "y": 300,
+              "width": 200,
+              "height": 150,
+              "description": "安全教育展区",
+              "exhibits": ["安全案例", "预防措施"]
+            }
+          ],
+          "facilities": [
+            {
+              "id": "facility-9",
+              "name": "洗手间",
+              "type": "restroom",
+              "x": 50,
+              "y": 50,
+              "icon": "🚻"
+            },
+            {
+              "id": "facility-10",
+              "name": "电梯",
+              "type": "elevator",
+              "x": 700,
+              "y": 200,
+              "icon": "🛗"
+            }
+          ],
+          "corridors": [
+            {
+              "id": "corridor-6",
+              "points": [
+                { "x": 300, "y": 100 },
+                { "x": 300, "y": 450 }
+              ],
+              "width": 40
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "facilityTypes": {
+    "restroom": { "label": "洗手间", "icon": "🚻", "color": "#1890ff" },
+    "accessible-restroom": { "label": "无障碍卫生间", "icon": "♿", "color": "#52c41a" },
+    "escalator": { "label": "手扶电梯", "icon": "⬆️", "color": "#faad14" },
+    "elevator": { "label": "电梯", "icon": "🛗", "color": "#722ed1" },
+    "entrance": { "label": "出入口", "icon": "🚪", "color": "#eb2f96" }
+  },
+  "roomTypes": {
+    "exhibition": { "label": "展厅", "color": "#52c41a", "fill": "#f6ffed" },
+    "info": { "label": "游客中心", "color": "#1890ff", "fill": "#e6f7ff" },
+    "shop": { "label": "商店", "color": "#faad14", "fill": "#fffbe6" },
+    "restaurant": { "label": "餐厅", "color": "#eb2f96", "fill": "#fff0f6" }
+  }
+}
+

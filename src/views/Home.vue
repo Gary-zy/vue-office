@@ -7,21 +7,21 @@
           <n-space vertical :size="32" align="center">
             <h1 class="hero-title">
               <n-gradient-text type="primary">
-                技术博客 & 文档预览
+                技术博客 & 前端工具
               </n-gradient-text>
-              <span class="hero-subtitle-block">一站式前端展示平台</span>
+              <span class="hero-subtitle-block">一站式前端技术展示平台</span>
             </h1>
             
             <p class="hero-description">
-              记录技术成长，分享开发经验，支持多种文档格式在线预览
+              记录技术成长，分享开发经验，提供实用的前端开发工具
             </p>
 
             <!-- 特性标签 -->
             <n-space justify="center" wrap :size="12">
-              <n-tag type="success" size="large">⚡ 高性能</n-tag>
-              <n-tag type="info" size="large">🎨 现代UI</n-tag>
-              <n-tag type="warning" size="large">📱 响应式</n-tag>
-              <n-tag type="error" size="large">🚀 Vue 3</n-tag>
+              <n-tag type="success" size="large">高性能</n-tag>
+              <n-tag type="info" size="large">现代UI</n-tag>
+              <n-tag type="warning" size="large">响应式</n-tag>
+              <n-tag type="error" size="large">Vue 3</n-tag>
             </n-space>
 
             <!-- 行动按钮 -->
@@ -38,12 +38,12 @@
               </n-button>
               <n-button 
                 size="large"
-                @click="$router.push('/docx-preview')"
+                @click="$router.push('/tools/preview/docx')"
               >
                 <template #icon>
-                  <n-icon :component="DocumentTextOutline" />
+                  <n-icon :component="HammerOutline" />
                 </template>
-                文档预览
+                前端工具
               </n-button>
             </n-space>
 
@@ -60,8 +60,8 @@
               </div>
               <div class="stat-divider"></div>
               <div class="stat-item">
-                <div class="stat-value">4</div>
-                <div class="stat-label">文档格式</div>
+                <div class="stat-value">{{ toolsCount }}</div>
+                <div class="stat-label">实用工具</div>
               </div>
               <div class="stat-divider"></div>
               <div class="stat-item">
@@ -119,40 +119,73 @@
               </n-card>
             </n-grid-item>
 
-            <!-- 文档预览模块 -->
+            <!-- 前端工具模块 -->
             <n-grid-item :span="2" :md-span="1">
               <n-card 
                 class="feature-card preview-card"
                 hoverable
-                @click="$router.push('/docx-preview')"
               >
                 <n-space vertical :size="20">
                   <div class="feature-icon preview-icon">
-                    <n-icon :component="DocumentTextOutline" size="48" />
+                    <n-icon :component="HammerOutline" size="48" />
                   </div>
-                  <h2 class="feature-title">文档预览</h2>
+                  <h2 class="feature-title">前端工具</h2>
                   <p class="feature-description">
-                    支持 DOCX、Excel、PDF、PPTX 等多种格式的在线预览，无需下载即可查看
+                    实用的前端开发工具集合，包括文档预览、富文本编辑器等，助力高效开发
                   </p>
 
-                  <!-- 支持的格式 -->
-                  <div class="formats-preview">
+                  <!-- 工具列表 -->
+                  <div class="tools-preview">
                     <n-divider style="margin: 12px 0" />
-                    <n-space :size="12" justify="center">
-                      <n-tag 
-                        v-for="format in previewFormats"
-                        :key="format.name"
-                        size="medium"
-                        :bordered="false"
-                        @click.stop="$router.push(format.route)"
-                      >
-                        {{ format.icon }} {{ format.name }}
-                      </n-tag>
-                    </n-space>
+                    <n-collapse :default-expanded-names="['1', '2', '3', '4']">
+                      <n-collapse-item title="文档预览工具" name="1">
+                        <n-space vertical :size="4">
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/preview/docx')">
+                            DOCX / Excel / PDF / PPTX
+                          </n-button>
+                        </n-space>
+                      </n-collapse-item>
+                      <n-collapse-item title="编辑器工具" name="2">
+                        <n-space vertical :size="4">
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/editor/rich')">
+                            Markdown 编辑器
+                          </n-button>
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/editor/wang')">
+                            WangEditor 富文本
+                          </n-button>
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/editor/vditor')">
+                            Vditor 编辑器
+                          </n-button>
+                        </n-space>
+                      </n-collapse-item>
+                      <n-collapse-item title="可视化与媒体" name="3">
+                        <n-space vertical :size="4">
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/gantt')">
+                            甘特图项目管理
+                          </n-button>
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/map')">
+                            地图工具
+                          </n-button>
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/video')">
+                            视频播放器
+                          </n-button>
+                        </n-space>
+                      </n-collapse-item>
+                      <n-collapse-item title="开发工具" name="4">
+                        <n-space vertical :size="4">
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/json')">
+                            JSON 格式化
+                          </n-button>
+                          <n-button text type="info" block size="small" @click.stop="$router.push('/tools/barcode')">
+                            条形码/二维码生成
+                          </n-button>
+                        </n-space>
+                      </n-collapse-item>
+                    </n-collapse>
                   </div>
 
-                  <n-button type="info" block size="large">
-                    立即体验预览
+                  <n-button type="info" block size="large" @click="$router.push('/tools/preview/docx')">
+                    查看全部工具
                   </n-button>
                 </n-space>
               </n-card>
@@ -202,7 +235,7 @@
             <n-space vertical :size="24" align="center">
               <h2 class="cta-title">开始探索</h2>
               <p class="cta-description">
-                立即访问技术博客或体验文档预览功能
+                立即访问技术博客或体验前端开发工具
               </p>
               <n-space :size="20">
                 <n-button 
@@ -237,7 +270,8 @@ import { formatFriendlyTime } from '@/utils/date'
 import { 
   BookOutline, 
   DocumentTextOutline, 
-  TimeOutline
+  TimeOutline,
+  HammerOutline
 } from '@vicons/ionicons5'
 
 /**
@@ -260,22 +294,17 @@ const totalViews = computed(() => {
   return articles.value.reduce((sum, a) => sum + a.views, 0)
 })
 
-// 文档预览格式
-const previewFormats = [
-  { name: 'DOCX', icon: '📄', route: '/docx-preview' },
-  { name: 'Excel', icon: '📊', route: '/excel-preview' },
-  { name: 'PDF', icon: '📕', route: '/pdf-preview' },
-  { name: 'PPTX', icon: '📽️', route: '/pptx-preview' }
-]
+// 工具数量统计
+const toolsCount = computed(() => 12) // 4种文档预览 + 3种编辑器 + 甘特图 + 地图 + 视频播放器 + JSON格式化 + 条形码二维码
 
-// 技术栈
+// 技术栈 (使用文字代替 emoji，更专业)
 const techStack = [
-  { name: 'Vue 3', version: 'v3.5', icon: '🖖', color: '#42b883' },
-  { name: 'Pinia', version: 'v2.x', icon: '🍍', color: '#ffd859' },
-  { name: 'Vite', version: 'v7.x', icon: '⚡', color: '#646cff' },
-  { name: 'Naive UI', version: 'v2.x', icon: '🎨', color: '#18a058' },
-  { name: 'TypeScript', version: 'Ready', icon: '🔷', color: '#3178c6' },
-  { name: 'Tailwind', version: 'v4.x', icon: '🎯', color: '#38bdf8' }
+  { name: 'Vue 3', version: 'v3.5', icon: 'V', color: '#42b883' },
+  { name: 'Pinia', version: 'v2.x', icon: 'P', color: '#ffd859' },
+  { name: 'Vite', version: 'v7.x', icon: 'V', color: '#646cff' },
+  { name: 'Naive UI', version: 'v2.x', icon: 'N', color: '#18a058' },
+  { name: 'TypeScript', version: 'Ready', icon: 'TS', color: '#3178c6' },
+  { name: 'Tailwind', version: 'v4.x', icon: 'TW', color: '#38bdf8' }
 ]
 
 /**

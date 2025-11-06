@@ -62,38 +62,142 @@ const routes = [
       title: '文章归档'
     }
   },
-  // 文档预览路由
+  // 工具路由
   {
-    path: '/docx-preview',
+    path: '/tools',
+    name: 'Tools',
+    redirect: '/tools/preview/docx'
+  },
+  // 文档预览工具
+  {
+    path: '/tools/preview/docx',
     name: 'DocxPreview',
     component: () => import('../views/DocxPreview.vue'),
     meta: {
-      title: 'DOCX 文档预览'
+      title: 'DOCX 文档预览 - 工具'
     }
   },
   {
-    path: '/excel-preview',
+    path: '/tools/preview/excel',
     name: 'ExcelPreview',
     component: () => import('../views/ExcelPreview.vue'),
     meta: {
-      title: 'Excel 表格预览'
+      title: 'Excel 表格预览 - 工具'
     }
   },
   {
-    path: '/pdf-preview',
+    path: '/tools/preview/pdf',
     name: 'PdfPreview',
     component: () => import('../views/PdfPreview.vue'),
     meta: {
-      title: 'PDF 文档预览'
+      title: 'PDF 文档预览 - 工具'
     }
   },
   {
-    path: '/pptx-preview',
+    path: '/tools/preview/pptx',
     name: 'PptxPreview',
     component: () => import('../views/PptxPreview.vue'),
     meta: {
-      title: 'PPTX 演示文稿预览'
+      title: 'PPTX 演示文稿预览 - 工具'
     }
+  },
+  // 富文本编辑器
+  {
+    path: '/tools/editor/rich',
+    name: 'RichEditor',
+    component: () => import('../views/tools/RichEditor.vue'),
+    meta: {
+      title: 'Markdown 编辑器 - 工具'
+    }
+  },
+  // WangEditor 富文本编辑器
+  {
+    path: '/tools/editor/wang',
+    name: 'WangEditor',
+    component: () => import('../views/tools/WangEditor.vue'),
+    meta: {
+      title: 'WangEditor 富文本编辑器 - 工具'
+    }
+  },
+  // Vditor Markdown 编辑器
+  {
+    path: '/tools/editor/vditor',
+    name: 'VditorEditor',
+    component: () => import('../views/tools/VditorEditor.vue'),
+    meta: {
+      title: 'Vditor Markdown 编辑器 - 工具'
+    }
+  },
+  // 甘特图
+  {
+    path: '/tools/gantt',
+    name: 'GanttChart',
+    component: () => import('../views/tools/GanttChart.vue'),
+    meta: {
+      title: '甘特图 - 工具'
+    }
+  },
+  // 地图工具
+  {
+    path: '/tools/map',
+    name: 'MapViewer',
+    component: () => import('../views/tools/MapViewer.vue'),
+    meta: {
+      title: '地图工具 - 工具'
+    }
+  },
+  // 视频播放器
+  {
+    path: '/tools/video',
+    name: 'VideoPlayer',
+    component: () => import('../views/tools/VideoPlayer.vue'),
+    meta: {
+      title: '视频播放器 - 工具'
+    }
+  },
+  // JSON 格式化工具
+  {
+    path: '/tools/json',
+    name: 'JsonFormatter',
+    component: () => import('../views/tools/JsonFormatter.vue'),
+    meta: {
+      title: 'JSON 格式化 - 工具'
+    }
+  },
+  // 条形码二维码生成器
+  {
+    path: '/tools/barcode',
+    name: 'BarcodeGenerator',
+    component: () => import('../views/tools/BarcodeGenerator.vue'),
+    meta: {
+      title: '条形码二维码生成 - 工具'
+    }
+  },
+  // 室内导览工具
+  {
+    path: '/tools/indoor-guide',
+    name: 'IndoorGuide',
+    component: () => import('../views/tools/IndoorGuide.vue'),
+    meta: {
+      title: '室内导览 - 工具'
+    }
+  },
+  // 兼容旧路由（重定向）
+  {
+    path: '/docx-preview',
+    redirect: '/tools/preview/docx'
+  },
+  {
+    path: '/excel-preview',
+    redirect: '/tools/preview/excel'
+  },
+  {
+    path: '/pdf-preview',
+    redirect: '/tools/preview/pdf'
+  },
+  {
+    path: '/pptx-preview',
+    redirect: '/tools/preview/pptx'
   },
   // 404 页面
   {

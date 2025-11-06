@@ -1,0 +1,187 @@
+{
+  "museums": [
+    {
+      "id": "museum-1",
+      "name": "故宫博物院",
+      "description": "中国明清两代的皇家宫殿",
+      "center": [39.9163, 116.3972],
+      "zoom": 17,
+      "floors": [
+        {
+          "id": "floor-1",
+          "name": "一层",
+          "level": 1,
+          "buildings": [
+            {
+              "id": "building-1",
+              "name": "午门",
+              "type": "entrance",
+              "position": [39.9163, 116.3905],
+              "description": "故宫的正门，明清帝王举行重大仪式的地方",
+              "image": "https://picsum.photos/400/300?random=1",
+              "openTime": "8:30-17:00"
+            },
+            {
+              "id": "building-2",
+              "name": "太和殿",
+              "type": "exhibition",
+              "position": [39.9188, 116.3972],
+              "description": "故宫三大殿之首，举行大典的地方",
+              "image": "https://picsum.photos/400/300?random=2",
+              "openTime": "8:30-17:00",
+              "exhibits": ["龙椅", "金銮殿", "明清历史"]
+            },
+            {
+              "id": "building-3",
+              "name": "中和殿",
+              "type": "exhibition",
+              "position": [39.9195, 116.3972],
+              "description": "皇帝休息和接受朝贺的地方",
+              "image": "https://picsum.photos/400/300?random=3",
+              "openTime": "8:30-17:00"
+            },
+            {
+              "id": "building-4",
+              "name": "保和殿",
+              "type": "exhibition",
+              "position": [39.9202, 116.3972],
+              "description": "举行殿试和宴会的地方",
+              "image": "https://picsum.photos/400/300?random=4",
+              "openTime": "8:30-17:00"
+            },
+            {
+              "id": "building-5",
+              "name": "乾清宫",
+              "type": "exhibition",
+              "position": [39.9215, 116.3972],
+              "description": "明清帝王的寝宫",
+              "image": "https://picsum.photos/400/300?random=5",
+              "openTime": "8:30-17:00",
+              "exhibits": ["御床", "书房", "生活用品"]
+            }
+          ]
+        }
+      ],
+      "facilities": [
+        {
+          "id": "facility-1",
+          "name": "游客中心",
+          "type": "info",
+          "position": [39.9150, 116.3905],
+          "icon": "info"
+        },
+        {
+          "id": "facility-2",
+          "name": "洗手间",
+          "type": "restroom",
+          "position": [39.9170, 116.3950],
+          "icon": "restroom"
+        },
+        {
+          "id": "facility-3",
+          "name": "餐厅",
+          "type": "restaurant",
+          "position": [39.9180, 116.4000],
+          "icon": "restaurant"
+        },
+        {
+          "id": "facility-4",
+          "name": "纪念品商店",
+          "type": "shop",
+          "position": [39.9160, 116.4010],
+          "icon": "shop"
+        }
+      ]
+    },
+    {
+      "id": "museum-2",
+      "name": "中国国家博物馆",
+      "description": "世界上建筑面积最大的博物馆",
+      "center": [39.9042, 116.3992],
+      "zoom": 17,
+      "floors": [
+        {
+          "id": "floor-b1",
+          "name": "地下一层",
+          "level": -1,
+          "buildings": [
+            {
+              "id": "building-6",
+              "name": "古代中国陈列",
+              "type": "exhibition",
+              "position": [39.9040, 116.3985],
+              "description": "展示中国古代历史文物",
+              "image": "https://picsum.photos/400/300?random=6",
+              "exhibits": ["青铜器", "陶瓷", "玉器"]
+            }
+          ]
+        },
+        {
+          "id": "floor-1",
+          "name": "一层",
+          "level": 1,
+          "buildings": [
+            {
+              "id": "building-7",
+              "name": "复兴之路",
+              "type": "exhibition",
+              "position": [39.9042, 116.3992],
+              "description": "近代中国历史展览",
+              "image": "https://picsum.photos/400/300?random=7",
+              "exhibits": ["革命文物", "历史照片"]
+            }
+          ]
+        },
+        {
+          "id": "floor-2",
+          "name": "二层",
+          "level": 2,
+          "buildings": [
+            {
+              "id": "building-8",
+              "name": "艺术展厅",
+              "type": "exhibition",
+              "position": [39.9045, 116.3995],
+              "description": "中国艺术珍品展",
+              "image": "https://picsum.photos/400/300?random=8",
+              "exhibits": ["书画", "雕塑", "工艺品"]
+            }
+          ]
+        }
+      ],
+      "facilities": [
+        {
+          "id": "facility-5",
+          "name": "主入口",
+          "type": "entrance",
+          "position": [39.9035, 116.3985],
+          "icon": "entrance"
+        },
+        {
+          "id": "facility-6",
+          "name": "咖啡厅",
+          "type": "cafe",
+          "position": [39.9050, 116.4000],
+          "icon": "cafe"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "id": "route-1",
+      "name": "故宫经典路线",
+      "museum": "museum-1",
+      "description": "游览故宫主要景点的推荐路线",
+      "duration": "3-4小时",
+      "points": [
+        "building-1",
+        "building-2",
+        "building-3",
+        "building-4",
+        "building-5"
+      ]
+    }
+  ]
+}
+

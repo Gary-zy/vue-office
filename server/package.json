@@ -1,0 +1,20 @@
+{
+  "name": "blog-api-server",
+  "version": "1.0.0",
+  "description": "Simple Node.js backend for blog articles management",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js"
+  },
+  "keywords": ["express", "blog", "api"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  }
+}
+
