@@ -21,19 +21,19 @@
                 <!-- 工具栏 -->
                 <n-space justify="space-between">
                   <n-space>
-                    <n-button @click="changeView('Day')">
+                    <n-button @click="changeView('Day')" :type="currentView === 'Day' ? 'primary' : 'default'">
                       <template #icon>
                         <n-icon :component="CalendarOutline" />
                       </template>
                       日视图
                     </n-button>
-                    <n-button @click="changeView('Week')">
+                    <n-button @click="changeView('Week')" :type="currentView === 'Week' ? 'primary' : 'default'">
                       <template #icon>
                         <n-icon :component="CalendarOutline" />
                       </template>
                       周视图
                     </n-button>
-                    <n-button @click="changeView('Month')">
+                    <n-button @click="changeView('Month')" :type="currentView === 'Month' ? 'primary' : 'default'">
                       <template #icon>
                         <n-icon :component="CalendarOutline" />
                       </template>
@@ -46,6 +46,12 @@
                         <n-icon :component="AddOutline" />
                       </template>
                       添加任务
+                    </n-button>
+                    <n-button @click="refreshGantt">
+                      <template #icon>
+                        <n-icon :component="RefreshOutline" />
+                      </template>
+                      刷新
                     </n-button>
                   </n-space>
                 </n-space>
@@ -131,6 +137,9 @@
           <n-form-item label="结束日期">
             <n-date-picker v-model:value="newTask.end" type="date" />
           </n-form-item>
+          <n-form-item label="进度 (%)">
+            <n-input-number v-model:value="newTask.progress" :min="0" :max="100" :step="5" style="width: 100%" />
+          </n-form-item>
         </n-form>
         <template #action>
           <n-space>
@@ -144,18 +153,19 @@
 </template>
 
 <script setup>
-import { ref, computed, h, onMounted } from 'vue'
+import { ref, computed, h, onMounted, watch, nextTick } from 'vue'
 import { darkTheme, useMessage, NProgress } from 'naive-ui'
 import { useThemeStore } from '@/stores/theme'
 import Gantt from 'frappe-gantt'
 import { 
   CalendarOutline,
   AddOutline,
-  CheckmarkCircleOutline
+  CheckmarkCircleOutline,
+  RefreshOutline
 } from '@vicons/ionicons5'
 
 /**
- * @description 甘特图页面
+ * @description 甘特图页面 - 使用 frappe-gantt（优化版）
  */
 
 const message = useMessage()
@@ -164,16 +174,20 @@ const themeStore = useThemeStore()
 // 主题
 const isDark = computed(() => themeStore.isDark)
 
-// 甘特图容器
+// 甘特图容器和实例
 const ganttContainer = ref(null)
 let gantt = null
+
+// 视图模式
+const currentView = ref('Week')
 
 // 对话框
 const showDialog = ref(false)
 const newTask = ref({
   name: '',
   start: null,
-  end: null
+  end: null,
+  progress: 0
 })
 
 // 获取当前日期并计算示例任务日期
@@ -278,56 +292,85 @@ const columns = [
 const initGantt = () => {
   if (!ganttContainer.value) return
 
-  gantt = new Gantt(ganttContainer.value, tasks.value, {
-    view_mode: 'Day',
-    language: 'zh',
-    bar_height: 30,
-    bar_corner_radius: 3,
-    arrow_curve: 5,
-    padding: 18,
-    date_format: 'YYYY-MM-DD',
-    on_click: (task) => {
-      console.log('Task clicked:', task)
-      message.info(`点击了任务：${task.name}`)
-    },
-    on_date_change: (task, start, end) => {
-      console.log('Date changed:', task, start, end)
-      // 更新任务数据
-      const taskIndex = tasks.value.findIndex(t => t.id === task.id)
-      if (taskIndex !== -1) {
-        tasks.value[taskIndex].start = start.toISOString().split('T')[0]
-        tasks.value[taskIndex].end = end.toISOString().split('T')[0]
+  // 清除旧实例
+  if (gantt) {
+    ganttContainer.value.innerHTML = ''
+  }
+
+  try {
+    gantt = new Gantt(ganttContainer.value, tasks.value, {
+      view_mode: currentView.value,
+      language: 'zh',
+      bar_height: 35,
+      bar_corner_radius: 4,
+      arrow_curve: 5,
+      padding: 20,
+      date_format: 'YYYY-MM-DD',
+      header_height: 50,
+      column_width: 30,
+      step: 24,
+      on_click: (task) => {
+        message.info(`点击了任务：${task.name}`)
+      },
+      on_date_change: (task, start, end) => {
+        const taskIndex = tasks.value.findIndex(t => t.id === task.id)
+        if (taskIndex !== -1) {
+          tasks.value[taskIndex].start = start.toISOString().split('T')[0]
+          tasks.value[taskIndex].end = end.toISOString().split('T')[0]
+          message.success(`任务 "${task.name}" 日期已更新`)
+        }
+      },
+      on_progress_change: (task, progress) => {
+        const taskIndex = tasks.value.findIndex(t => t.id === task.id)
+        if (taskIndex !== -1) {
+          tasks.value[taskIndex].progress = progress
+          message.success(`任务 "${task.name}" 进度已更新为 ${progress}%`)
+        }
       }
-    },
-    on_progress_change: (task, progress) => {
-      console.log('Progress changed:', task, progress)
-      // 更新进度
-      const taskIndex = tasks.value.findIndex(t => t.id === task.id)
-      if (taskIndex !== -1) {
-        tasks.value[taskIndex].progress = progress
-      }
-    }
-  })
+    })
+  } catch (error) {
+    console.error('甘特图初始化失败:', error)
+    message.error('甘特图初始化失败，请刷新页面重试')
+  }
 }
 
 /**
  * @description 切换视图
  */
 const changeView = (view) => {
+  currentView.value = view
   if (gantt) {
     gantt.change_view_mode(view)
-    message.success(`已切换到${view === 'Day' ? '日' : view === 'Week' ? '周' : '月'}视图`)
+    const viewNames = {
+      Day: '日',
+      Week: '周',
+      Month: '月'
+    }
+    message.success(`已切换到${viewNames[view]}视图`)
   }
+}
+
+/**
+ * @description 刷新甘特图
+ */
+const refreshGantt = () => {
+  initGantt()
+  message.success('甘特图已刷新')
 }
 
 /**
  * @description 显示添加任务对话框
  */
 const showAddTaskDialog = () => {
+  const defaultStart = new Date()
+  const defaultEnd = new Date()
+  defaultEnd.setDate(defaultEnd.getDate() + 7)
+  
   newTask.value = {
     name: '',
-    start: Date.now(),
-    end: Date.now() + 7 * 24 * 60 * 60 * 1000
+    start: defaultStart.getTime(),
+    end: defaultEnd.getTime(),
+    progress: 0
   }
   showDialog.value = true
 }
@@ -344,25 +387,138 @@ const addTask = () => {
   const task = {
     id: `Task ${tasks.value.length + 1}`,
     name: newTask.value.name,
-    start: new Date(newTask.value.start).toISOString().split('T')[0],
-    end: new Date(newTask.value.end).toISOString().split('T')[0],
-    progress: 0,
+    start: formatDate(new Date(newTask.value.start)),
+    end: formatDate(new Date(newTask.value.end)),
+    progress: newTask.value.progress || 0,
     dependencies: ''
   }
 
   tasks.value.push(task)
   
   // 重新初始化甘特图
-  gantt.refresh(tasks.value)
+  nextTick(() => {
+    initGantt()
+  })
   
   message.success('任务已添加')
   showDialog.value = false
 }
 
+// 监听任务变化
+watch(
+  () => tasks.value.length,
+  () => {
+    nextTick(() => {
+      if (gantt) {
+        initGantt()
+      }
+    })
+  }
+)
+
 onMounted(() => {
-  initGantt()
+  nextTick(() => {
+    initGantt()
+  })
 })
 </script>
+
+<style>
+/* Frappe Gantt 基础样式 */
+.gantt-container {
+  line-height: 14.5px;
+  position: relative;
+  overflow: auto;
+  font-size: 12px;
+  height: 100%;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.gantt {
+  user-select: none;
+  -webkit-user-select: none;
+  position: absolute;
+}
+
+.gantt .grid-background {
+  fill: none;
+}
+
+.gantt .grid-row {
+  fill: var(--n-color, #fdfdfd);
+}
+
+.gantt .row-line {
+  stroke: var(--n-border-color, #ebeff2);
+}
+
+.gantt .tick {
+  stroke: var(--n-border-color, #f3f3f3);
+  stroke-width: 0.4;
+}
+
+.gantt .tick.thick {
+  stroke: var(--n-border-color, #ededed);
+  stroke-width: 0.7;
+}
+
+.gantt .arrow {
+  fill: none;
+  stroke: #18a058;
+  stroke-width: 1.5;
+}
+
+.gantt .bar-wrapper .bar {
+  fill: #18a058;
+  stroke: #18a058;
+  stroke-width: 0;
+  transition: stroke-width 0.3s ease;
+  rx: 4;
+}
+
+.gantt .bar-wrapper:hover .bar {
+  fill: #36ad6a;
+  filter: brightness(1.1);
+}
+
+.gantt .bar-progress {
+  fill: #52c41a;
+  rx: 4;
+}
+
+.gantt .bar-label {
+  fill: #fff;
+  dominant-baseline: central;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.gantt .grid-header {
+  height: 50px;
+  background-color: var(--n-color, #fff);
+  position: sticky;
+  top: 0;
+  left: 0;
+  border-bottom: 1px solid var(--n-border-color, #c7c7c7);
+  z-index: 1000;
+}
+
+.gantt .upper-text,
+.gantt .lower-text {
+  fill: var(--n-text-color, #171717);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.gantt .current-highlight {
+  position: absolute;
+  background: #18a058;
+  width: 1px;
+  z-index: 999;
+}
+</style>
 
 <style scoped>
 .gantt-chart-page {
@@ -410,23 +566,14 @@ onMounted(() => {
 .gantt-wrapper {
   width: 100%;
   overflow: auto;
+  border: 1px solid var(--n-border-color);
+  border-radius: 8px;
+  background: var(--n-color);
 }
 
 .gantt-container {
-  min-height: 400px;
-}
-
-/* Frappe Gantt 样式优化 */
-.gantt-container :deep(.gantt) {
-  overflow: visible;
-}
-
-.gantt-container :deep(.bar) {
-  fill: #18a058;
-}
-
-.gantt-container :deep(.bar-progress) {
-  fill: #36ad6a;
+  min-height: 500px;
+  position: relative;
 }
 
 /* 响应式 */
@@ -437,6 +584,10 @@ onMounted(() => {
 
   .page-subtitle {
     font-size: 14px;
+  }
+
+  .gantt-container {
+    min-height: 400px;
   }
 }
 </style>

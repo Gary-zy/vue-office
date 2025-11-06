@@ -38,6 +38,8 @@
     "@iconify-json/radix-icons": "^1.2.5",
     "@iconify/vue": "^5.0.0",
     "@vicons/ionicons5": "^0.13.0",
+    "@visactor/vtable": "^1.22.2",
+    "@visactor/vtable-gantt": "^1.22.2",
     "@vue-office/docx": "^1.6.3",
     "@vue-office/excel": "^1.7.14",
     "@vue-office/pdf": "^2.0.10",
