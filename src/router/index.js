@@ -182,6 +182,15 @@ const routes = [
       title: '室内导览 - 工具'
     }
   },
+  // AI 对话工具
+  {
+    path: '/tools/ai-chat',
+    name: 'AIChat',
+    component: () => import('../views/tools/AIChat.vue'),
+    meta: {
+      title: 'AI 对话助手 - 工具'
+    }
+  },
   // 兼容旧路由（重定向）
   {
     path: '/docx-preview',

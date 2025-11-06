@@ -18,6 +18,41 @@
             <!-- 播放器卡片 -->
             <n-card>
               <n-space vertical :size="16">
+                <!-- 在线链接输入 -->
+                <n-card title="在线链接播放" size="small">
+                  <n-space vertical :size="12">
+                    <n-input
+                      v-model:value="videoUrl"
+                      placeholder="请输入视频链接（支持 MP4、M3U8、WebM 等格式）"
+                      clearable
+                      @keyup.enter="loadUrl"
+                    >
+                      <template #prefix>
+                        <n-icon :component="LinkOutline" />
+                      </template>
+                    </n-input>
+                    <n-space justify="space-between">
+                      <n-space>
+                        <n-button type="primary" @click="loadUrl" :loading="loading">
+                          <template #icon>
+                            <n-icon :component="PlayOutline" />
+                          </template>
+                          加载并播放
+                        </n-button>
+                        <n-button @click="saveToPlaylist">
+                          <template #icon>
+                            <n-icon :component="AddOutline" />
+                          </template>
+                          保存到列表
+                        </n-button>
+                      </n-space>
+                      <n-text depth="3" style="font-size: 12px;">
+                        示例：https://example.com/video.mp4
+                      </n-text>
+                    </n-space>
+                  </n-space>
+                </n-card>
+
                 <!-- 工具栏 -->
                 <n-space justify="space-between" wrap>
                   <n-space wrap>
@@ -26,6 +61,7 @@
                       :options="videoOptions"
                       style="width: 300px"
                       placeholder="选择视频"
+                      filterable
                       @update:value="changeVideo"
                     />
                   </n-space>
@@ -69,9 +105,20 @@
                     <template #avatar>
                       <n-icon :component="CheckmarkCircleOutline" color="#18a058" size="24" />
                     </template>
+                    <template #header>在线链接播放</template>
+                    <template #description>
+                      支持输入在线视频链接直接播放，支持多种格式
+                    </template>
+                  </n-thing>
+                </n-grid-item>
+                <n-grid-item>
+                  <n-thing>
+                    <template #avatar>
+                      <n-icon :component="CheckmarkCircleOutline" color="#18a058" size="24" />
+                    </template>
                     <template #header>多格式支持</template>
                     <template #description>
-                      支持 MP4、WebM、HLS 等多种视频格式
+                      支持 MP4、WebM、HLS、FLV 等多种视频格式
                     </template>
                   </n-thing>
                 </n-grid-item>
@@ -102,6 +149,17 @@
                     <template #avatar>
                       <n-icon :component="CheckmarkCircleOutline" color="#18a058" size="24" />
                     </template>
+                    <template #header>播放列表</template>
+                    <template #description>
+                      支持保存自定义链接到播放列表
+                    </template>
+                  </n-thing>
+                </n-grid-item>
+                <n-grid-item>
+                  <n-thing>
+                    <template #avatar>
+                      <n-icon :component="CheckmarkCircleOutline" color="#18a058" size="24" />
+                    </template>
                     <template #header>快捷键支持</template>
                     <template #description>
                       支持空格暂停、方向键快进等快捷键
@@ -113,20 +171,30 @@
 
             <!-- 使用说明 -->
             <n-card title="使用说明" style="margin-top: 24px">
-              <n-alert type="info" title="演示视频">
-                当前使用的是 Big Buck Bunny 开源测试视频，您可以替换为自己的视频链接。
-              </n-alert>
-              <n-divider />
-              <n-space vertical>
-                <n-text><strong>快捷键：</strong></n-text>
-                <ul style="margin: 0; padding-left: 24px;">
-                  <li>空格键：播放/暂停</li>
-                  <li>→ 方向键：快进 10 秒</li>
-                  <li>← 方向键：快退 10 秒</li>
-                  <li>↑ 方向键：增加音量</li>
-                  <li>↓ 方向键：减少音量</li>
-                  <li>F 键：全屏/退出全屏</li>
-                </ul>
+              <n-space vertical :size="16">
+                <n-alert type="info" title="在线链接播放">
+                  <n-space vertical :size="8">
+                    <n-text>支持通过在线链接播放视频，支持以下格式：</n-text>
+                    <ul style="margin: 0; padding-left: 24px;">
+                      <li>MP4、WebM、OGG 等标准视频格式</li>
+                      <li>M3U8 (HLS) 流媒体格式</li>
+                      <li>FLV、MOV、AVI 等其他格式</li>
+                    </ul>
+                    <n-text depth="3">输入链接后点击"加载并播放"即可开始播放，或点击"保存到列表"将链接添加到播放列表中。</n-text>
+                  </n-space>
+                </n-alert>
+                <n-divider />
+                <n-space vertical>
+                  <n-text><strong>快捷键：</strong></n-text>
+                  <ul style="margin: 0; padding-left: 24px;">
+                    <li>空格键：播放/暂停</li>
+                    <li>→ 方向键：快进 10 秒</li>
+                    <li>← 方向键：快退 10 秒</li>
+                    <li>↑ 方向键：增加音量</li>
+                    <li>↓ 方向键：减少音量</li>
+                    <li>F 键：全屏/退出全屏</li>
+                  </ul>
+                </n-space>
               </n-space>
             </n-card>
           </div>
@@ -146,7 +214,9 @@ import {
   VideocamOutline,
   PlayOutline,
   PauseOutline,
-  CheckmarkCircleOutline
+  CheckmarkCircleOutline,
+  LinkOutline,
+  AddOutline
 } from '@vicons/ionicons5'
 
 /**
@@ -166,13 +236,17 @@ let player = null
 // 当前视频
 const currentVideo = ref('demo1')
 
+// 在线链接输入
+const videoUrl = ref('')
+const loading = ref(false)
+
 // 播放器状态
 const currentTime = ref(0)
 const duration = ref(0)
 const isPlaying = ref(false)
 
-// 视频选项
-const videoOptions = [
+// 视频选项（使用 ref 以便动态添加）
+const videoOptions = ref([
   { 
     label: '演示视频 1 - Big Buck Bunny', 
     value: 'demo1',
@@ -188,7 +262,7 @@ const videoOptions = [
     value: 'demo3',
     url: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
   }
-]
+])
 
 /**
  * @description 初始化播放器
@@ -196,7 +270,7 @@ const videoOptions = [
 const initPlayer = () => {
   if (!playerContainer.value) return
 
-  const videoInfo = videoOptions.find(v => v.value === currentVideo.value)
+  const videoInfo = videoOptions.value.find(v => v.value === currentVideo.value)
 
   player = new Player({
     el: playerContainer.value,
@@ -236,7 +310,7 @@ const initPlayer = () => {
  * @description 切换视频
  */
 const changeVideo = (value) => {
-  const videoInfo = videoOptions.find(v => v.value === value)
+  const videoInfo = videoOptions.value.find(v => v.value === value)
   
   if (player && videoInfo) {
     player.src = videoInfo.url
@@ -260,6 +334,149 @@ const pauseVideo = () => {
   if (player) {
     player.pause()
   }
+}
+
+/**
+ * @description 验证视频链接
+ */
+const isValidVideoUrl = (url) => {
+  if (!url || !url.trim()) return false
+  
+  try {
+    const urlObj = new URL(url.trim())
+    // 检查是否是 http 或 https
+    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+      return false
+    }
+    
+    // 检查是否是常见的视频格式
+    const videoExtensions = ['.mp4', '.webm', '.ogg', '.m3u8', '.flv', '.mov', '.avi']
+    const pathname = urlObj.pathname.toLowerCase()
+    const hasVideoExtension = videoExtensions.some(ext => pathname.endsWith(ext))
+    
+    // 如果是 M3U8 或没有扩展名但看起来像视频链接，也认为是有效的
+    return hasVideoExtension || pathname.includes('video') || url.includes('.m3u8')
+  } catch (e) {
+    return false
+  }
+}
+
+/**
+ * @description 加载在线链接
+ */
+const loadUrl = async () => {
+  if (!videoUrl.value || !videoUrl.value.trim()) {
+    message.warning('请输入视频链接')
+    return
+  }
+
+  const url = videoUrl.value.trim()
+
+  if (!isValidVideoUrl(url)) {
+    message.warning('请输入有效的视频链接（支持 MP4、M3U8、WebM 等格式）')
+    return
+  }
+
+  loading.value = true
+
+  try {
+    // 如果播放器已存在，更新视频源
+    if (player) {
+      player.src = url
+      player.play()
+      message.success('视频链接加载成功，开始播放')
+    } else {
+      // 如果播放器不存在，先初始化
+      initPlayerWithUrl(url)
+    }
+  } catch (error) {
+    console.error('加载视频失败:', error)
+    message.error('加载视频失败，请检查链接是否正确')
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * @description 使用指定 URL 初始化播放器
+ */
+const initPlayerWithUrl = (url) => {
+  if (!playerContainer.value) return
+
+  // 如果已有播放器实例，先销毁
+  if (player) {
+    player.destroy()
+  }
+
+  player = new Player({
+    el: playerContainer.value,
+    url: url,
+    width: '100%',
+    height: '500px',
+    autoplay: true,
+    playbackRate: [0.5, 0.75, 1, 1.25, 1.5, 2],
+    defaultPlaybackRate: 1,
+    pip: true,
+    fluid: true,
+    lang: 'zh-cn',
+    
+    play: () => {
+      isPlaying.value = true
+    },
+    
+    pause: () => {
+      isPlaying.value = false
+    },
+    
+    timeupdate: () => {
+      if (player) {
+        currentTime.value = Math.floor(player.currentTime)
+        duration.value = Math.floor(player.duration)
+      }
+    }
+  })
+
+  message.success('视频加载成功')
+}
+
+/**
+ * @description 保存到播放列表
+ */
+const saveToPlaylist = () => {
+  if (!videoUrl.value || !videoUrl.value.trim()) {
+    message.warning('请输入视频链接')
+    return
+  }
+
+  const url = videoUrl.value.trim()
+
+  if (!isValidVideoUrl(url)) {
+    message.warning('请输入有效的视频链接')
+    return
+  }
+
+  // 检查是否已存在
+  const exists = videoOptions.value.some(v => v.url === url)
+  if (exists) {
+    message.warning('该链接已存在于播放列表中')
+    return
+  }
+
+  // 生成新的选项
+  const newOption = {
+    label: `自定义视频 ${videoOptions.value.length - 2}`,
+    value: `custom-${Date.now()}`,
+    url: url
+  }
+
+  videoOptions.value.push(newOption)
+  currentVideo.value = newOption.value
+  
+  // 切换到新视频
+  changeVideo(newOption.value)
+  
+  message.success('已保存到播放列表')
+  videoUrl.value = '' // 清空输入框
 }
 
 onMounted(() => {

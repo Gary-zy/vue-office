@@ -1,6 +1,6 @@
 <template>
-  <n-config-provider :theme="isDark ? darkTheme : null">
-    <div class="gantt-chart-page">
+  <n-config-provider :theme="darkTheme">
+    <div class="gantt-chart-page dark-mode">
       <n-layout>
         <n-layout-content class="chart-content">
           <div class="content-container">
@@ -153,9 +153,8 @@
 </template>
 
 <script setup>
-import { ref, computed, h, onMounted, watch, nextTick } from 'vue'
+import { ref, h, onMounted, watch, nextTick } from 'vue'
 import { darkTheme, useMessage, NProgress } from 'naive-ui'
-import { useThemeStore } from '@/stores/theme'
 import Gantt from 'frappe-gantt'
 import { 
   CalendarOutline,
@@ -165,14 +164,10 @@ import {
 } from '@vicons/ionicons5'
 
 /**
- * @description 甘特图页面 - 使用 frappe-gantt（优化版）
+ * @description 甘特图页面 - 使用 frappe-gantt（深色主题）
  */
 
 const message = useMessage()
-const themeStore = useThemeStore()
-
-// 主题
-const isDark = computed(() => themeStore.isDark)
 
 // 甘特图容器和实例
 const ganttContainer = ref(null)
@@ -290,44 +285,58 @@ const columns = [
  * @description 初始化甘特图
  */
 const initGantt = () => {
-  if (!ganttContainer.value) return
-
-  // 清除旧实例
-  if (gantt) {
-    ganttContainer.value.innerHTML = ''
+  if (!ganttContainer.value) {
+    console.warn('甘特图容器未找到')
+    return
   }
 
   try {
-    gantt = new Gantt(ganttContainer.value, tasks.value, {
-      view_mode: currentView.value,
-      language: 'zh',
-      bar_height: 35,
-      bar_corner_radius: 4,
-      arrow_curve: 5,
-      padding: 20,
-      date_format: 'YYYY-MM-DD',
-      header_height: 50,
-      column_width: 30,
-      step: 24,
-      on_click: (task) => {
-        message.info(`点击了任务：${task.name}`)
-      },
-      on_date_change: (task, start, end) => {
-        const taskIndex = tasks.value.findIndex(t => t.id === task.id)
-        if (taskIndex !== -1) {
-          tasks.value[taskIndex].start = start.toISOString().split('T')[0]
-          tasks.value[taskIndex].end = end.toISOString().split('T')[0]
-          message.success(`任务 "${task.name}" 日期已更新`)
+    // 完全清除旧实例和 DOM
+    if (gantt) {
+      // 销毁旧实例
+      gantt = null
+    }
+    
+    // 清空容器内容
+    ganttContainer.value.innerHTML = ''
+    
+    // 等待 DOM 更新
+    setTimeout(() => {
+      if (!ganttContainer.value) return
+      
+      // 创建新实例
+      gantt = new Gantt(ganttContainer.value, tasks.value, {
+        view_mode: currentView.value,
+        language: 'zh',
+        bar_height: 35,
+        bar_corner_radius: 4,
+        arrow_curve: 5,
+        padding: 20,
+        date_format: 'YYYY-MM-DD',
+        header_height: 50,
+        column_width: 30,
+        step: 24,
+        custom_popup_html: null, // 禁用默认弹窗，避免 DOM 问题
+        on_click: (task) => {
+          message.info(`点击了任务：${task.name}`)
+        },
+        on_date_change: (task, start, end) => {
+          const taskIndex = tasks.value.findIndex(t => t.id === task.id)
+          if (taskIndex !== -1) {
+            tasks.value[taskIndex].start = start.toISOString().split('T')[0]
+            tasks.value[taskIndex].end = end.toISOString().split('T')[0]
+            message.success(`任务 "${task.name}" 日期已更新`)
+          }
+        },
+        on_progress_change: (task, progress) => {
+          const taskIndex = tasks.value.findIndex(t => t.id === task.id)
+          if (taskIndex !== -1) {
+            tasks.value[taskIndex].progress = progress
+            message.success(`任务 "${task.name}" 进度已更新为 ${progress}%`)
+          }
         }
-      },
-      on_progress_change: (task, progress) => {
-        const taskIndex = tasks.value.findIndex(t => t.id === task.id)
-        if (taskIndex !== -1) {
-          tasks.value[taskIndex].progress = progress
-          message.success(`任务 "${task.name}" 进度已更新为 ${progress}%`)
-        }
-      }
-    })
+      })
+    }, 100) // 延迟 100ms 确保 DOM 准备就绪
   } catch (error) {
     console.error('甘特图初始化失败:', error)
     message.error('甘特图初始化失败，请刷新页面重试')
@@ -339,15 +348,17 @@ const initGantt = () => {
  */
 const changeView = (view) => {
   currentView.value = view
-  if (gantt) {
-    gantt.change_view_mode(view)
+  
+  // 重新初始化而不是切换视图，避免 DOM 问题
+  nextTick(() => {
+    initGantt()
     const viewNames = {
       Day: '日',
       Week: '周',
       Month: '月'
     }
     message.success(`已切换到${viewNames[view]}视图`)
-  }
+  })
 }
 
 /**
@@ -408,31 +419,32 @@ const addTask = () => {
 watch(
   () => tasks.value.length,
   () => {
-    nextTick(() => {
-      if (gantt) {
-        initGantt()
-      }
-    })
+    // 任务数量变化时重新初始化
+    setTimeout(() => {
+      initGantt()
+    }, 150)
   }
 )
 
 onMounted(() => {
-  nextTick(() => {
+  // 确保 DOM 完全渲染后再初始化
+  setTimeout(() => {
     initGantt()
-  })
+  }, 200)
 })
 </script>
 
 <style>
-/* Frappe Gantt 基础样式 */
+/* Frappe Gantt 基础样式 - 深色主题优化 */
 .gantt-container {
   line-height: 14.5px;
   position: relative;
   overflow: auto;
-  font-size: 12px;
+  font-size: 13px;
   height: 100%;
   width: 100%;
   border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .gantt {
@@ -441,89 +453,186 @@ onMounted(() => {
   position: absolute;
 }
 
+/* 网格背景 - 更清晰的对比 */
 .gantt .grid-background {
-  fill: none;
+  fill: rgba(20, 20, 20, 0.8);
 }
 
 .gantt .grid-row {
-  fill: var(--n-color, #fdfdfd);
+  fill: rgba(255, 255, 255, 0.03);
+}
+
+.gantt .grid-row:nth-child(even) {
+  fill: rgba(255, 255, 255, 0.01);
 }
 
 .gantt .row-line {
-  stroke: var(--n-border-color, #ebeff2);
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 0.5;
 }
 
+/* 时间刻度线 - 增强可见性 */
 .gantt .tick {
-  stroke: var(--n-border-color, #f3f3f3);
-  stroke-width: 0.4;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 0.5;
 }
 
 .gantt .tick.thick {
-  stroke: var(--n-border-color, #ededed);
-  stroke-width: 0.7;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 1;
 }
 
+/* 今日高亮线 */
+.gantt .today-highlight {
+  fill: rgba(0, 113, 227, 0.15);
+  opacity: 0.3;
+}
+
+/* 依赖箭头 - 苹果蓝 */
 .gantt .arrow {
   fill: none;
-  stroke: #18a058;
-  stroke-width: 1.5;
+  stroke: #0071e3;
+  stroke-width: 2;
+  opacity: 0.8;
 }
 
+/* 任务条 - 苹果蓝渐变 */
 .gantt .bar-wrapper .bar {
-  fill: #18a058;
-  stroke: #18a058;
+  fill: #0071e3;
+  stroke: #0071e3;
   stroke-width: 0;
-  transition: stroke-width 0.3s ease;
-  rx: 4;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  rx: 8;
+  ry: 8;
+  opacity: 0.9;
 }
 
 .gantt .bar-wrapper:hover .bar {
-  fill: #36ad6a;
-  filter: brightness(1.1);
+  fill: #0077ed;
+  stroke: rgba(0, 119, 237, 0.6);
+  stroke-width: 2;
+  opacity: 1;
+  filter: drop-shadow(0 4px 12px rgba(0, 113, 227, 0.4));
 }
 
+/* 任务进度条 - 亮蓝色 */
 .gantt .bar-progress {
-  fill: #52c41a;
-  rx: 4;
+  fill: #00a8e3;
+  rx: 8;
+  ry: 8;
+  opacity: 0.85;
 }
 
+/* 任务标签文字 */
 .gantt .bar-label {
   fill: #fff;
   dominant-baseline: central;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+.gantt .bar-label.big {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 表头区域 - 毛玻璃效果 */
 .gantt .grid-header {
   height: 50px;
-  background-color: var(--n-color, #fff);
+  background: rgba(29, 29, 31, 0.95);
+  backdrop-filter: blur(30px) saturate(180%);
   position: sticky;
   top: 0;
   left: 0;
-  border-bottom: 1px solid var(--n-border-color, #c7c7c7);
+  border-bottom: 2px solid rgba(0, 113, 227, 0.3);
   z-index: 1000;
 }
 
-.gantt .upper-text,
-.gantt .lower-text {
-  fill: var(--n-text-color, #171717);
-  font-size: 12px;
-  font-weight: 500;
+/* 表头文字 - 增强对比度 */
+.gantt .upper-text {
+  fill: #f5f5f7;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
+.gantt .lower-text {
+  fill: #86868b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 当前时间线 */
 .gantt .current-highlight {
   position: absolute;
-  background: #18a058;
-  width: 1px;
+  background: linear-gradient(90deg, transparent, #0071e3, transparent);
+  width: 3px;
   z-index: 999;
+  opacity: 0.8;
+  box-shadow: 0 0 10px rgba(0, 113, 227, 0.6);
+}
+
+/* 任务详情弹出框 */
+.gantt .popup-wrapper {
+  background: rgba(29, 29, 31, 0.98);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.gantt .popup-wrapper .title {
+  color: #f5f5f7;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.gantt .popup-wrapper .subtitle {
+  color: #86868b;
+  font-size: 12px;
+}
+
+/* 任务手柄（拖拽点） */
+.gantt .handle {
+  fill: rgba(255, 255, 255, 0.9);
+  cursor: ew-resize;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.gantt .bar-wrapper:hover .handle {
+  opacity: 1;
+}
+
+.gantt .handle.left {
+  rx: 3;
+}
+
+.gantt .handle.right {
+  rx: 3;
+}
+
+/* 任务详情文字 */
+.gantt .details-container {
+  color: #f5f5f7;
+  font-size: 13px;
 }
 </style>
 
 <style scoped>
+/* 深色主题样式 */
 .gantt-chart-page {
   min-height: 100vh;
-  background: var(--n-color);
+  background: #000;
+}
+
+.gantt-chart-page.dark-mode {
+  background: #000;
+  color: #f5f5f7;
 }
 
 .chart-content {
@@ -549,31 +658,56 @@ onMounted(() => {
   font-size: 32px;
   font-weight: 700;
   margin: 0 0 12px 0;
-  color: var(--n-title-text-color);
+  color: #f5f5f7;
 }
 
 .page-title .n-icon {
   font-size: 36px;
+  color: #0071e3;
 }
 
 .page-subtitle {
   font-size: 16px;
-  color: var(--n-text-color);
-  opacity: 0.7;
+  color: #86868b;
   margin: 0;
 }
 
 .gantt-wrapper {
   width: 100%;
-  overflow: auto;
-  border: 1px solid var(--n-border-color);
-  border-radius: 8px;
-  background: var(--n-color);
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .gantt-container {
-  min-height: 500px;
+  min-height: 550px;
   position: relative;
+  padding: 8px;
+}
+
+/* 滚动条样式 - 苹果风格 */
+.gantt-wrapper::-webkit-scrollbar {
+  height: 12px;
+}
+
+.gantt-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.gantt-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.gantt-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* 响应式 */

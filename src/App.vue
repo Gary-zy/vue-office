@@ -1,7 +1,7 @@
 <template>
-  <n-config-provider :theme="isDark ? darkTheme : null">
+  <n-config-provider :theme="darkTheme">
     <n-message-provider>
-      <div id="app">
+      <div id="app" class="dark-mode">
         <!-- 导航栏 -->
         <n-layout-header bordered style="height: 64px; padding: 0 24px; position: sticky; top: 0; z-index: 1000;">
           <div class="nav-container">
@@ -45,13 +45,6 @@
                   关于我
                 </n-button>
               </router-link>
-              
-              <!-- 主题切换按钮 -->
-              <n-button circle @click="themeStore.toggleTheme()">
-                <template #icon>
-                  <n-icon :component="isDark ? SunnyOutline : MoonOutline" />
-                </template>
-              </n-button>
             </n-space>
           </div>
         </n-layout-header>
@@ -66,18 +59,10 @@
         </n-layout-content>
 
         <!-- 页脚 -->
-        <n-layout-footer style="padding: 32px 24px; text-align: center; border-top: 1px solid #eee;">
-          <n-space vertical size="small">
-            <n-text depth="3">
-              &copy; 2024 技术博客平台. 使用 Vue 3 + Pinia + Naive UI 构建
-            </n-text>
-            <n-space justify="center" size="large">
-              <n-text depth="3" style="font-size: 12px;">
-                <n-icon :component="CodeSlashOutline" style="vertical-align: middle;" />
-                Made with ❤️
-              </n-text>
-            </n-space>
-          </n-space>
+        <n-layout-footer class="app-footer">
+          <n-text depth="3" style="font-size: 13px;">
+            &copy; 2025 技术博客平台 · 张扬
+          </n-text>
         </n-layout-footer>
       </div>
     </n-message-provider>
@@ -85,15 +70,12 @@
 </template>
 
 <script setup>
-import { computed, h, onMounted } from 'vue'
+import { h, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { darkTheme, NIcon } from 'naive-ui'
-import { useThemeStore } from '@/stores/theme'
 import { useBlogStore } from '@/stores/blog'
 import { useUserStore } from '@/stores/user'
 import { 
-  MoonOutline, 
-  SunnyOutline, 
   ChevronDown,
   CodeSlashOutline,
   BookOutline,
@@ -109,21 +91,16 @@ import {
 } from '@vicons/ionicons5'
 
 /**
- * @description 应用根组件
+ * @description 应用根组件 - 始终使用深色主题
  * 包含导航栏、路由出口和页脚
  */
 
 const router = useRouter()
-const themeStore = useThemeStore()
 const blogStore = useBlogStore()
 const userStore = useUserStore()
 
-const isDark = computed(() => themeStore.isDark)
-
 // 初始化
 onMounted(() => {
-  // 初始化主题
-  themeStore.initTheme()
   // 初始化用户数据
   userStore.initUserData()
   // 初始化博客数据
@@ -273,9 +250,16 @@ const toolsOptions = [
   },
   {
     label: 'AI 工具',
-    key: 'ai-tools',
+    key: 'tools-ai-group',
+    type: 'group',
     icon: renderIcon(BulbOutline),
-    disabled: true
+    children: [
+      {
+        label: 'AI 对话助手',
+        key: 'ai-chat',
+        icon: renderIcon(BulbOutline)
+      }
+    ]
   }
 ]
 
@@ -309,7 +293,9 @@ function handleToolsSelect(key) {
     'video-player': '/tools/video',
     // 开发工具
     'json-formatter': '/tools/json',
-    'barcode-generator': '/tools/barcode'
+    'barcode-generator': '/tools/barcode',
+    // AI 工具
+    'ai-chat': '/tools/ai-chat'
   }
   
   if (routes[key]) {
@@ -319,7 +305,7 @@ function handleToolsSelect(key) {
 </script>
 
 <style>
-/* 全局样式 */
+/* 全局样式 - 深色主题 */
 * {
   margin: 0;
   padding: 0;
@@ -329,12 +315,21 @@ function handleToolsSelect(key) {
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
+  background: #000;
+  color: #f5f5f7;
 }
 
 #app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #000;
+}
+
+/* 深色主题全局覆盖 */
+.dark-mode {
+  background: #000;
+  color: #f5f5f7;
 }
 
 /* 导航栏样式 */
@@ -356,6 +351,15 @@ body {
 .nav-menu {
   display: flex;
   align-items: center;
+}
+
+/* 页脚样式 - 深色主题 */
+.app-footer {
+  padding: 16px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
 }
 
 /* 页面过渡动画 */
@@ -384,22 +388,23 @@ body {
   }
 }
 
-/* 滚动条样式 */
+/* 滚动条样式 - 深色主题 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.25);
 }
 </style>
