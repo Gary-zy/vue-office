@@ -1,35 +1,72 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import About from '../views/About.vue'
-import DocxPreview from '../views/DocxPreview.vue'
-import ExcelPreview from '../views/ExcelPreview.vue'
-import PdfPreview from '../views/PdfPreview.vue'
-import PptxPreview from '../views/PptxPreview.vue'
 
 /**
  * @description 路由配置
+ * 使用路由懒加载优化性能
  */
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home,
+    component: () => import('../views/Home.vue'),
     meta: {
-      title: '首页'
+      title: '首页 - 技术博客与文档预览平台'
     }
   },
   {
     path: '/about',
     name: 'About',
-    component: About,
+    component: () => import('../views/About.vue'),
     meta: {
-      title: '相关文档'
+      title: '关于我'
+    }
+  },
+  // 博客路由
+  {
+    path: '/blog',
+    name: 'BlogHome',
+    component: () => import('../views/blog/BlogHome.vue'),
+    meta: {
+      title: '技术博客'
     }
   },
   {
+    path: '/blog/article/:id',
+    name: 'ArticleDetail',
+    component: () => import('../views/blog/ArticleDetail.vue'),
+    meta: {
+      title: '文章详情'
+    }
+  },
+  {
+    path: '/blog/category/:id',
+    name: 'Category',
+    component: () => import('../views/blog/Category.vue'),
+    meta: {
+      title: '分类'
+    }
+  },
+  {
+    path: '/blog/tag/:id',
+    name: 'Tag',
+    component: () => import('../views/blog/Tag.vue'),
+    meta: {
+      title: '标签'
+    }
+  },
+  {
+    path: '/blog/archive',
+    name: 'Archive',
+    component: () => import('../views/blog/Archive.vue'),
+    meta: {
+      title: '文章归档'
+    }
+  },
+  // 文档预览路由
+  {
     path: '/docx-preview',
     name: 'DocxPreview',
-    component: DocxPreview,
+    component: () => import('../views/DocxPreview.vue'),
     meta: {
       title: 'DOCX 文档预览'
     }
@@ -37,7 +74,7 @@ const routes = [
   {
     path: '/excel-preview',
     name: 'ExcelPreview',
-    component: ExcelPreview,
+    component: () => import('../views/ExcelPreview.vue'),
     meta: {
       title: 'Excel 表格预览'
     }
@@ -45,7 +82,7 @@ const routes = [
   {
     path: '/pdf-preview',
     name: 'PdfPreview',
-    component: PdfPreview,
+    component: () => import('../views/PdfPreview.vue'),
     meta: {
       title: 'PDF 文档预览'
     }
@@ -53,9 +90,18 @@ const routes = [
   {
     path: '/pptx-preview',
     name: 'PptxPreview',
-    component: PptxPreview,
+    component: () => import('../views/PptxPreview.vue'),
     meta: {
       title: 'PPTX 演示文稿预览'
+    }
+  },
+  // 404 页面
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFound.vue'),
+    meta: {
+      title: '页面不存在'
     }
   }
 ]
@@ -67,7 +113,15 @@ const routes = [
  */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  // 路由切换时滚动到顶部
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0, behavior: 'smooth' }
+    }
+  }
 })
 
 /**
@@ -75,7 +129,7 @@ const router = createRouter({
  * 在每次路由跳转后更新页面标题
  */
 router.afterEach((to) => {
-  document.title = to.meta.title || 'Vue3 应用'
+  document.title = to.meta.title || '技术博客与文档预览平台'
 })
 
 export default router
