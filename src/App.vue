@@ -87,7 +87,9 @@ import {
   BulbOutline,
   MapOutline,
   VideocamOutline,
-  QrCodeOutline
+  QrCodeOutline,
+  FlashOutline,
+  ClipboardOutline
 } from '@vicons/ionicons5'
 
 /**
@@ -258,6 +260,16 @@ const toolsOptions = [
         label: 'AI 对话助手',
         key: 'ai-chat',
         icon: renderIcon(BulbOutline)
+      },
+      {
+        label: '工作流设计器',
+        key: 'workflow-tool',
+        icon: renderIcon(FlashOutline)
+      },
+      {
+        label: '动态表单',
+        key: 'dynamic-form',
+        icon: renderIcon(ClipboardOutline)
       }
     ]
   }
@@ -295,7 +307,9 @@ function handleToolsSelect(key) {
     'json-formatter': '/tools/json',
     'barcode-generator': '/tools/barcode',
     // AI 工具
-    'ai-chat': '/tools/ai-chat'
+    'ai-chat': '/tools/ai-chat',
+    'workflow-tool': '/tools/workflow',
+    'dynamic-form': '/tools/form/dynamic'
   }
   
   if (routes[key]) {

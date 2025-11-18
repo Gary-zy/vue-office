@@ -97,11 +97,11 @@
                       <span></span>
                     </div>
                   </div>
-                  <div v-else class="message-text">
-                    <span v-if="msg.typing" class="typing-text">{{ msg.displayContent || '' }}</span>
-                    <span v-else>{{ msg.content }}</span>
-                    <span v-if="msg.typing" class="cursor-blink">|</span>
+                  <div v-else-if="msg.typing" class="message-text">
+                    <span class="typing-text">{{ msg.displayContent || '' }}</span>
+                    <span class="cursor-blink">|</span>
                   </div>
+                  <div v-else class="message-text message-markdown" v-html="renderMessage(msg)"></div>
                 </div>
                 
                 <!-- 操作按钮 -->
@@ -144,6 +144,7 @@
                   v-model="inputMessage"
                   placeholder="请输入消息..."
                   :disabled="isLoading || !hasApiKey"
+                  @input="autoResize"
                   @keydown.enter.exact.prevent="sendMessage"
                   @keydown.shift.enter="handleShiftEnter"
                   class="chat-input"
@@ -479,6 +480,7 @@ import {
   CheckmarkOutline
 } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
+import { renderMarkdown } from '@/utils/markdown'
 
 /**
  * @description AI 对话助手页面 - 始终使用深色主题
@@ -501,13 +503,6 @@ const showModelDrawer = ref(false)
 const modelOptions = ref([])
 const loadingModels = ref(false)
 
-// 选择模型
-const selectModel = (model) => {
-  selectedModel.value = model
-  showModelDrawer.value = false
-  message.success(`已切换模型: ${model}`)
-}
-
 // 设置
 const showSettingsDrawer = ref(false)
 const settings = ref({
@@ -522,6 +517,7 @@ const inputMessage = ref('')
 const inputRef = ref(null)
 const isLoading = ref(false)
 const messagesContainer = ref(null)
+const requestController = ref(null)
 
 // 快速提示
 const quickPrompts = [
@@ -540,6 +536,41 @@ const typingSpeed = ref(30) // 每个字符的间隔时间(ms)
 const typingTimers = new Map() // 存储每条消息的定时器
 
 /**
+ * @description 中断当前对话请求
+ */
+const abortCurrentRequest = () => {
+  if (requestController.value) {
+    requestController.value.abort()
+    requestController.value = null
+  }
+}
+
+/**
+ * @description 渲染消息为 Markdown
+ */
+const renderMessage = (msg) => {
+  if (!msg || !msg.content) return ''
+  return renderMarkdown(msg.content)
+}
+
+/**
+ * @description 文本域自适应高度
+ */
+const autoResize = () => {
+  nextTick(() => {
+    const el = inputRef.value
+    if (!el) return
+    el.style.height = 'auto'
+    const minHeight = 44
+    const maxHeight = 200
+    const newHeight = Math.min(el.scrollHeight, maxHeight)
+    el.style.height = `${Math.max(newHeight, minHeight)}px`
+    // 当超过最大高度时，保持光标可见
+    el.scrollTop = el.scrollHeight
+  })
+}
+
+/**
  * @description 添加调试日志
  */
 const addDebugLog = (message, type = 'info', details = null) => {
@@ -553,6 +584,25 @@ const addDebugLog = (message, type = 'info', details = null) => {
   if (debugLogs.value.length > 20) {
     debugLogs.value.shift()
   }
+}
+
+// 选择模型
+const selectModel = (model) => {
+  if (selectedModel.value === model) {
+    showModelDrawer.value = false
+    return
+  }
+
+  // 切换模型时，中断当前请求并清空会话
+  abortCurrentRequest()
+  stopAllTyping()
+  isLoading.value = false
+  messages.value = []
+
+  selectedModel.value = model
+  showModelDrawer.value = false
+  addDebugLog(`已切换模型: ${model}，当前会话已清空`, 'info')
+  message.success(`已切换模型: ${model}，当前会话已清空`)
 }
 
 /**
@@ -790,6 +840,7 @@ const sendMessage = async () => {
 
   const userMessage = inputMessage.value.trim()
   inputMessage.value = ''
+  autoResize()
 
   addDebugLog(`发送用户消息: ${userMessage.substring(0, 50)}...`, 'info')
 
@@ -811,6 +862,11 @@ const sendMessage = async () => {
 
   // 滚动到底部
   scrollToBottom()
+
+  // 开始新请求前先中断上一条
+  abortCurrentRequest()
+  requestController.value = new AbortController()
+  const requestSignal = requestController.value.signal
 
   isLoading.value = true
 
@@ -835,22 +891,23 @@ const sendMessage = async () => {
       stream: false
     }
 
-    addDebugLog('发送 API 请求', 'info', {
-      url: API_URL,
-      model: selectedModel.value,
-      messageCount: conversationMessages.length,
-      settings: settings.value
+  addDebugLog('发送 API 请求', 'info', {
+    url: API_URL,
+    model: selectedModel.value,
+    messageCount: conversationMessages.length,
+    settings: settings.value
     })
 
-    // 发送请求
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey.value}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestPayload)
-    })
+  // 发送请求
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey.value}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(requestPayload),
+    signal: requestSignal
+  })
 
     addDebugLog(`收到响应: ${response.status} ${response.statusText}`, response.ok ? 'info' : 'error')
 
@@ -919,31 +976,38 @@ const sendMessage = async () => {
     
     message.success('回复已收到')
   } catch (error) {
-    console.error('AI 请求失败:', error)
-    addDebugLog(`请求失败: ${error.message}`, 'error', error)
+    // 处理被中断的请求
+    if (error.name === 'AbortError') {
+      addDebugLog('请求已中断', 'warning')
+      message.info('已中断当前会话')
+    } else {
+      console.error('AI 请求失败:', error)
+      addDebugLog(`请求失败: ${error.message}`, 'error', error)
     
-    // 显示详细错误信息
-    let errorMsg = error.message || '未知错误'
+      // 显示详细错误信息
+      let errorMsg = error.message || '未知错误'
     
-    // 处理常见错误
-    if (errorMsg.includes('Failed to fetch')) {
-      errorMsg = '网络请求失败，可能是跨域问题或网络连接问题。建议：1) 检查网络连接 2) 尝试使用代理 3) 查看浏览器控制台获取详细错误'
-    } else if (errorMsg.includes('401')) {
-      errorMsg = 'API Key 无效，请检查您的 API Key 是否正确'
-    } else if (errorMsg.includes('429')) {
-      errorMsg = 'API 请求频率超限，请稍后再试'
-    } else if (errorMsg.includes('500') || errorMsg.includes('502') || errorMsg.includes('503')) {
-      errorMsg = 'API 服务器错误，请稍后再试'
+      // 处理常见错误
+      if (errorMsg.includes('Failed to fetch')) {
+        errorMsg = '网络请求失败，可能是跨域问题或网络连接问题。建议：1) 检查网络连接 2) 尝试使用代理 3) 查看浏览器控制台获取详细错误'
+      } else if (errorMsg.includes('401')) {
+        errorMsg = 'API Key 无效，请检查您的 API Key 是否正确'
+      } else if (errorMsg.includes('429')) {
+        errorMsg = 'API 请求频率超限，请稍后再试'
+      } else if (errorMsg.includes('500') || errorMsg.includes('502') || errorMsg.includes('503')) {
+        errorMsg = 'API 服务器错误，请稍后再试'
+      }
+    
+      message.error(errorMsg, {
+        duration: 5000
+      })
     }
-    
-    message.error(errorMsg, {
-      duration: 5000
-    })
     
     // 移除加载中的消息
     messages.value.splice(aiMessageIndexForError, 1)
   } finally {
     isLoading.value = false
+    requestController.value = null
   }
 }
 
@@ -981,6 +1045,7 @@ const regenerateMessage = async (index) => {
  * @description 清空对话
  */
 const clearChat = () => {
+  abortCurrentRequest()
   stopAllTyping()
   messages.value = []
   message.success('对话已清空')
@@ -1013,6 +1078,9 @@ onMounted(async () => {
     // 如果已有 API Key，自动获取模型列表
     await fetchModels()
   }
+
+  // 初始对齐输入框高度
+  autoResize()
 })
 
 // 组件卸载时清理定时器
@@ -1426,6 +1494,65 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease;
 }
 
+.message-markdown {
+  white-space: normal;
+}
+
+.message-markdown :deep(p) {
+  margin: 10px 0;
+}
+
+.message-markdown :deep(code) {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+}
+
+.message-markdown :deep(pre) {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  overflow: auto;
+  margin: 12px 0;
+}
+
+.message-markdown :deep(pre code) {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.message-markdown :deep(ul),
+.message-markdown :deep(ol) {
+  margin: 8px 0 8px 18px;
+  padding: 0;
+}
+
+.message-markdown :deep(li) {
+  margin: 4px 0;
+}
+
+.message-markdown :deep(blockquote) {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  color: #d7d7db;
+}
+
+.message-markdown :deep(a) {
+  color: #7cd6f7;
+  text-decoration: none;
+}
+
+.message-markdown :deep(a:hover) {
+  text-decoration: underline;
+}
+
 .message-text:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.12);
@@ -1564,7 +1691,7 @@ onBeforeUnmount(() => {
 
 .input-wrapper-inner {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
   padding: 14px 18px;
 }
@@ -1576,11 +1703,12 @@ onBeforeUnmount(() => {
   background: transparent;
   color: #f5f5f7;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 20px;
+  padding: 10px 0;
   resize: none;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   max-height: 200px;
-  min-height: 24px;
+  min-height: 44px;
 }
 
 .chat-input::placeholder {
@@ -1984,4 +2112,3 @@ onBeforeUnmount(() => {
   color: #f5f5f7;
 }
 </style>
-

@@ -1,10 +1,33 @@
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github.css'
 
 /**
  * @description Markdown 解析和渲染工具
  */
+
+// 初始化主题 CSS
+let currentThemeLinkId = 'highlight-theme'
+
+/**
+ * @description 动态加载主题 CSS
+ * @param {string} themeName - 主题名称
+ */
+export function loadThemeCSS(themeName) {
+  // 防止在服务端执行
+  if (typeof document === 'undefined') return
+
+  let existingLink = document.getElementById(currentThemeLinkId)
+  const themePath = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${themeName}.min.css`
+
+  if (!existingLink) {
+    existingLink = document.createElement('link')
+    existingLink.id = currentThemeLinkId
+    existingLink.rel = 'stylesheet'
+    document.head.appendChild(existingLink)
+  }
+
+  existingLink.href = themePath
+}
 
 // 创建 MarkdownIt 实例
 const md = new MarkdownIt({
@@ -12,7 +35,7 @@ const md = new MarkdownIt({
   linkify: true, // 自动转换链接
   typographer: true, // 优化排版
   breaks: true, // 转换段落里的 '\n' 到 <br>
-  
+
   // 代码高亮配置
   highlight: function (str, lang) {
     if (lang && hljs.getLanguage(lang)) {
@@ -262,5 +285,6 @@ export default {
   highlightKeyword,
   stripHtml,
   detectLanguage,
-  getLanguageDisplayName
+  getLanguageDisplayName,
+  loadThemeCSS
 }

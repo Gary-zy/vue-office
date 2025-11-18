@@ -155,6 +155,15 @@ const routes = [
       title: '视频播放器 - 工具'
     }
   },
+  // 工作流工具
+  {
+    path: '/tools/workflow',
+    name: 'WorkflowTool',
+    component: () => import('../views/tools/WorkflowTool.vue'),
+    meta: {
+      title: '工作流设计器 - 工具'
+    }
+  },
   // JSON 格式化工具
   {
     path: '/tools/json',
@@ -189,6 +198,15 @@ const routes = [
     component: () => import('../views/tools/AIChat.vue'),
     meta: {
       title: 'AI 对话助手 - 工具'
+    }
+  },
+  // 动态表单
+  {
+    path: '/tools/form/dynamic',
+    name: 'DynamicForm',
+    component: () => import('../views/tools/DynamicForm.vue'),
+    meta: {
+      title: '动态表单 - 工具'
     }
   },
   // 兼容旧路由（重定向）

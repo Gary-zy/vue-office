@@ -45,12 +45,18 @@
                   </n-space>
                 </n-space>
 
-                <!-- 编辑器区域 -->
-                <div class="editor-wrapper">
-                  <n-input
-                    v-model:value="editorContent"
-                    type="textarea"
-                    placeholder="开始编写内容...
+                <!-- 编辑&预览分栏 -->
+                <div class="editor-preview-layout">
+                  <div class="pane">
+                    <div class="pane-header">
+                      <n-icon :component="CreateOutline" />
+                      <span>Markdown 编写</span>
+                    </div>
+                    <div class="pane-body editor-wrapper">
+                      <n-input
+                        v-model:value="editorContent"
+                        type="textarea"
+                        placeholder="开始编写内容...
 
 支持 Markdown 语法：
 # 标题
@@ -58,24 +64,31 @@
 - 列表项
 [链接](url)
 ```代码块```"
-                    :autosize="{ minRows: 20, maxRows: 40 }"
-                    class="markdown-editor"
-                  />
+                        :autosize="{ minRows: 20, maxRows: 40 }"
+                        class="markdown-editor"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="pane preview-pane">
+                    <div class="pane-header">
+                      <n-icon :component="EyeOutline" />
+                      <span>实时预览</span>
+                    </div>
+                    <div class="pane-body">
+                      <div 
+                        class="markdown-preview"
+                        v-html="renderedContent"
+                      />
+                      <n-empty 
+                        v-if="!editorContent"
+                        description="内容预览将在这里显示"
+                        size="large"
+                      />
+                    </div>
+                  </div>
                 </div>
               </n-space>
-            </n-card>
-
-            <!-- 预览区域 -->
-            <n-card title="实时预览" style="margin-top: 24px">
-              <div 
-                class="markdown-preview"
-                v-html="renderedContent"
-              />
-              <n-empty 
-                v-if="!editorContent"
-                description="内容预览将在这里显示"
-                size="large"
-              />
             </n-card>
 
             <!-- 功能说明 -->
@@ -141,6 +154,7 @@ import { useThemeStore } from '@/stores/theme'
 import { renderMarkdown } from '@/utils/markdown'
 import { 
   CreateOutline, 
+  EyeOutline,
   TrashOutline, 
   DownloadOutline, 
   CodeOutline,
@@ -312,6 +326,39 @@ ${renderedContent.value}
 
 .editor-wrapper {
   width: 100%;
+  height: 100%;
+}
+
+.editor-preview-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.pane {
+  border: 1px solid var(--n-border-color);
+  border-radius: 8px;
+  background: var(--n-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--n-border-color);
+  color: var(--n-title-text-color);
+}
+
+.pane-body {
+  flex: 1;
+  padding: 12px 16px 16px;
+  overflow: auto;
 }
 
 .markdown-editor :deep(.n-input__textarea-el) {
@@ -325,6 +372,12 @@ ${renderedContent.value}
   line-height: 1.8;
   color: var(--n-text-color);
   min-height: 200px;
+  height: 100%;
+}
+
+.preview-pane .pane-body {
+  background: var(--n-color-hover);
+  border-radius: 0 0 8px 8px;
 }
 
 .markdown-preview :deep(h1),
@@ -402,6 +455,9 @@ ${renderedContent.value}
   .page-subtitle {
     font-size: 14px;
   }
+
+  .editor-preview-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
-
